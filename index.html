@@ -54,7 +54,7 @@ body{font-family:'Nunito',sans-serif;color:var(--c-text);min-height:100vh;overfl
 
 /* ENEMY */
 .enemy-area{display:flex;justify-content:center;margin-bottom:10px;min-height:90px;align-items:flex-end}
-#enemy-svg{transition:transform .15s}
+#enemy-svg{transition:transform .15s;transform-box:view-box;transform-origin:center}
 #enemy-svg.hit{animation:enemyHit .35s ease}
 #enemy-svg.miss{animation:enemyMock .4s ease}
 @keyframes enemyHit{0%{transform:scale(1)}30%{transform:scale(.85) rotate(-5deg)}70%{transform:scale(1.1)}100%{transform:scale(1)}}
@@ -139,6 +139,10 @@ body{font-family:'Nunito',sans-serif;color:var(--c-text);min-height:100vh;overfl
 
 .review-list{display:flex;flex-direction:column;gap:8px;margin:14px 0 18px;max-height:260px;overflow:auto;text-align:left}
 .review-item{background:rgba(15,15,35,.8);border:1px solid rgba(108,99,255,.25);border-radius:10px;padding:10px 12px}
+.review-item.correct-answer{opacity:.42;filter:saturate(.55)}
+.review-item.correct-answer:hover{opacity:.72}
+.review-status{float:right;font-size:11px;font-weight:800;padding:2px 7px;border-radius:999px;background:rgba(255,68,68,.18);color:#ff8b8b}
+.review-item.correct-answer .review-status{background:rgba(0,255,136,.16);color:var(--c-green)}
 .review-j{font-size:16px;font-weight:800;color:var(--c-text);margin-bottom:3px}
 .review-e{font-size:14px;color:var(--c-gold);font-weight:800}
 .review-type{font-size:11px;color:var(--c-muted);margin-top:3px}
@@ -184,8 +188,8 @@ body{font-family:'Nunito',sans-serif;color:var(--c-text);min-height:100vh;overfl
 .enemy-area{position:relative}
 .damage-pop{position:absolute;left:50%;top:8px;transform:translateX(-50%);font-family:'Fredoka One',cursive;font-size:26px;color:#ffd700;text-shadow:0 2px 0 #8a2500,0 0 10px rgba(255,215,0,.8);pointer-events:none;z-index:5;animation:damagePop .75s ease-out forwards}
 @keyframes damagePop{0%{opacity:0;transform:translate(-50%,10px) scale(.5)}20%{opacity:1;transform:translate(-50%,-8px) scale(1.2)}100%{opacity:0;transform:translate(-50%,-42px) scale(.9)}}
-#enemy-svg.damage{animation:enemyDamage .5s ease}
-@keyframes enemyDamage{0%{transform:translateX(0) scale(1);filter:none}15%{transform:translateX(-10px) scale(.95);filter:brightness(2.2) saturate(2)}30%{transform:translateX(10px) scale(1.05);filter:brightness(2.2) saturate(2)}45%{transform:translateX(-7px) scale(.98);filter:brightness(1.8) saturate(1.8)}65%{transform:translateX(5px) scale(1.02);filter:none}100%{transform:translateX(0) scale(1);filter:none}}
+#enemy-svg.damage{animation:enemyDamage .65s cubic-bezier(.36,.07,.19,.97) both!important}
+@keyframes enemyDamage{0%,100%{transform:translateX(0) rotate(0) scale(1);filter:none}12%{transform:translateX(-18px) rotate(-7deg) scale(.92);filter:brightness(2.5) saturate(2)}25%{transform:translateX(16px) rotate(6deg) scale(1.08);filter:brightness(2.2) saturate(2)}38%{transform:translateX(-13px) rotate(-5deg) scale(.95)}52%{transform:translateX(10px) rotate(4deg) scale(1.04)}68%{transform:translateX(-6px) rotate(-2deg)}84%{transform:translateX(4px) rotate(1deg)}}
 .hit-spark{position:absolute;width:10px;height:10px;border-radius:50%;background:#ffd700;box-shadow:0 0 12px #ffd700;pointer-events:none;z-index:4;animation:sparkBurst .55s ease-out forwards}
 @keyframes sparkBurst{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.2)}}
 
@@ -197,11 +201,11 @@ body{font-family:'Nunito',sans-serif;color:var(--c-text);min-height:100vh;overfl
 .defeat-burst{position:absolute;left:50%;top:42px;transform:translate(-50%,-50%);font-family:'Fredoka One',cursive;font-size:34px;color:#ffd700;text-shadow:0 2px 0 #8a2500,0 0 16px rgba(255,215,0,.9);pointer-events:none;z-index:7;animation:defeatBurst .95s ease-out forwards}
 @keyframes defeatBurst{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}25%{opacity:1;transform:translate(-50%,-70%) scale(1.25)}100%{opacity:0;transform:translate(-50%,-120%) scale(.8)}}
 
-.quick-bonus-burst{position:fixed;left:50%;top:45%;transform:translate(-50%,-50%);z-index:90;pointer-events:none;text-align:center;font-family:'Fredoka One',cursive;animation:quickBonusBurst 1.05s ease-out forwards;filter:drop-shadow(0 0 18px rgba(255,215,0,.85))}
-.quick-bonus-ring{position:absolute;left:50%;top:50%;width:230px;height:230px;border:8px solid rgba(255,215,0,.85);border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 34px rgba(255,215,0,.9),inset 0 0 26px rgba(255,255,255,.45);animation:quickBonusRing 1.05s ease-out forwards}
-.quick-bonus-main{position:relative;padding:18px 24px;border-radius:18px;background:linear-gradient(135deg,#fff7a8,#ffd700 45%,#ff7a00);color:#2b1600;font-size:42px;line-height:1;text-shadow:0 2px 0 rgba(255,255,255,.7);border:3px solid #fff;box-shadow:0 14px 35px rgba(255,122,0,.45)}
-.quick-bonus-sub{position:relative;margin-top:8px;font-size:30px;color:#fff;text-shadow:0 3px 0 #8a2500,0 0 16px rgba(255,215,0,.95)}
-.quick-bonus-spark{position:fixed;left:50%;top:45%;width:12px;height:12px;border-radius:50%;background:#fff7a8;box-shadow:0 0 14px #ffd700;z-index:89;pointer-events:none;animation:quickBonusSpark .85s ease-out forwards}
+.quick-bonus-burst{position:fixed;left:50%;top:64%;transform:translate(-50%,-50%);z-index:90;pointer-events:none;text-align:center;font-family:'Fredoka One',cursive;animation:quickBonusBurst 1.05s ease-out forwards;filter:drop-shadow(0 0 18px rgba(255,215,0,.85))}
+.quick-bonus-ring{position:absolute;left:50%;top:50%;width:180px;height:180px;border:6px solid rgba(255,215,0,.85);border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 26px rgba(255,215,0,.9),inset 0 0 20px rgba(255,255,255,.45);animation:quickBonusRing 1.05s ease-out forwards}
+.quick-bonus-main{position:relative;padding:13px 18px;border-radius:14px;background:linear-gradient(135deg,#fff7a8,#ffd700 45%,#ff7a00);color:#2b1600;font-size:32px;line-height:1;text-shadow:0 2px 0 rgba(255,255,255,.7);border:2px solid #fff;box-shadow:0 10px 26px rgba(255,122,0,.45)}
+.quick-bonus-sub{position:relative;margin-top:6px;font-size:22px;color:#fff;text-shadow:0 2px 0 #8a2500,0 0 12px rgba(255,215,0,.95)}
+.quick-bonus-spark{position:fixed;left:50%;top:64%;width:12px;height:12px;border-radius:50%;background:#fff7a8;box-shadow:0 0 14px #ffd700;z-index:89;pointer-events:none;animation:quickBonusSpark .85s ease-out forwards}
 .hud-score.quick-bonus-score{animation:quickBonusScore .75s ease;color:#fff7a8;text-shadow:0 0 18px #ffd700,0 0 28px #ff7a00}
 @keyframes quickBonusBurst{0%{opacity:0;transform:translate(-50%,-50%) scale(.35) rotate(-8deg)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.18) rotate(4deg)}42%{transform:translate(-50%,-50%) scale(.98) rotate(-2deg)}76%{opacity:1;transform:translate(-50%,-56%) scale(1.04) rotate(0)}100%{opacity:0;transform:translate(-50%,-70%) scale(.82) rotate(0)}}
 @keyframes quickBonusRing{0%{opacity:0;transform:translate(-50%,-50%) scale(.25)}22%{opacity:1;transform:translate(-50%,-50%) scale(.82)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.65)}}
@@ -386,7 +390,7 @@ body{font-family:'Nunito',sans-serif;color:var(--c-text);min-height:100vh;overfl
   <div id="screen-review" class="screen">
     <div class="result-wrap card" style="padding:24px">
       <div class="result-title">間違えた単語の振り返り</div>
-      <div class="result-sub">間違えた問題・スキップした問題を確認しよう</div>
+      <div class="result-sub">クリアしたステージを含め、出題された単語をすべて表示します</div>
       <div id="review-list" class="review-list"></div>
       <div class="result-btns">
         <button class="retry-btn" onclick="retryWrongWords()">この単語だけ練習</button>
@@ -1130,9 +1134,10 @@ applyEikenWebWords();
 const Q_PER_STAGE=10;
 const STAGES=3;
 
-let state={level:0,stage:0,qIndex:0,score:0,lives:3,combo:0,maxCombo:0,correct:0,hintUsed:false,timer:null,selectedTime:15,timeLeft:15,pool:[],stageQ:[],wrongWords:[],reviewMode:false,scoreSaved:false,mode:'jp2en',quizType:'input',customWordsAll:[],wordOrder:'random',answered:false,questionStartedAt:0};
+let state={level:0,stage:0,qIndex:0,score:0,lives:3,combo:0,maxCombo:0,correct:0,hintUsed:false,timer:null,selectedTime:15,timeLeft:15,pool:[],stageQ:[],reviewWords:[],wrongWords:[],attemptedWords:[],reviewMode:false,scoreSaved:false,mode:'jp2en',quizType:'input',customWordsAll:[],wordOrder:'random',answered:false,questionStartedAt:0};
 let audioCtx=null;
 let battleBgmTimer=null;
+let menuBgmTimer=null;
 
 /* ============ AUDIO ============ */
 function getAudio(){
@@ -1162,25 +1167,56 @@ function playNoise(start,duration,volume=.12,filterType='highpass',filterFreq=12
   noise.buffer=buffer;noise.connect(filter);filter.connect(g);g.connect(ctx.destination);
   noise.start(start);noise.stop(start+duration+.02);
 }
+function startMenuBgm(){
+  if(menuBgmTimer||!document.getElementById('screen-title').classList.contains('active'))return;
+  try{
+    const melody=[523,659,784,880,784,659,587,698,880,1047,880,698,659,587,523,659];
+    const bass=[131,165,196,165,147,175,220,196];
+    let step=0;
+    const tick=()=>{
+      const now=getAudio().currentTime;
+      playTone(melody[step%melody.length],now,.13,'triangle',.038);
+      if(step%2===0)playTone(bass[Math.floor(step/2)%bass.length],now,.25,'sine',.04);
+      if(step%4===2)playNoise(now,.025,.018,'highpass',5000);
+      step++;
+    };
+    tick();
+    menuBgmTimer=setInterval(tick,190);
+  }catch(e){}
+}
+function stopMenuBgm(){
+  if(menuBgmTimer){clearInterval(menuBgmTimer);menuBgmTimer=null;}
+}
+const LEVEL_BGM=[
+  {bass:[131,165,196,165],lead:[523,659,784,659,587,698,784,880],tempo:230,bassWave:'triangle',leadWave:'sine'},
+  {bass:[110,147,165,147],lead:[440,523,659,523,494,587,698,587],tempo:205,bassWave:'square',leadWave:'triangle'},
+  {bass:[98,131,147,165],lead:[392,494,587,659,587,494,440,523],tempo:185,bassWave:'sawtooth',leadWave:'square'},
+  {bass:[87,110,131,147],lead:[349,440,523,659,622,523,440,392],tempo:170,bassWave:'triangle',leadWave:'square'},
+  {bass:[82,110,123,147],lead:[330,415,494,587,554,494,415,370],tempo:155,bassWave:'sawtooth',leadWave:'sawtooth'},
+  {bass:[73,98,110,131],lead:[294,370,440,554,523,440,392,330],tempo:140,bassWave:'square',leadWave:'sawtooth'},
+  {bass:[65,82,98,123],lead:[262,330,392,494,466,392,349,294],tempo:125,bassWave:'sawtooth',leadWave:'square'}
+];
 function startBattleBgm(){
   if(battleBgmTimer)return;
+  stopMenuBgm();
   try{
-    const bass=[110,110,147,165,110,196,165,147];
-    const lead=[440,523,659,587,523,784,659,587,523,659,880,784,659,587,523,440];
+    const song=LEVEL_BGM[state.level]||LEVEL_BGM[0];
+    const bass=song.bass;
+    const lead=song.lead;
     let step=0;
     const tick=()=>{
       const ctx=getAudio();
       const now=ctx.currentTime;
       const b=bass[step%bass.length];
       const l=lead[step%lead.length];
-      playTone(b,now,.16,'sawtooth',.045);
-      playTone(l,now,.08,'square',.035);
+      playTone(b,now,.16,song.bassWave,.045);
+      playTone(l,now,.08,song.leadWave,.035);
       if(step%2===0)playNoise(now,.045,.055,'lowpass',420);
-      if(step%4===2)playNoise(now,.035,.04,'highpass',3500);
+      if((step+state.level)%4===2)playNoise(now,.035,.04,'highpass',2800+state.level*180);
       step++;
     };
     tick();
-    battleBgmTimer=setInterval(tick,170);
+    battleBgmTimer=setInterval(tick,song.tempo);
   }catch(e){}
 }
 function stopBattleBgm(){
@@ -1284,6 +1320,21 @@ function playGameClear(){
       playTone(f,now+i*.12,.28,'sine',.22);
       if(i>=3)playTone(f/2,now+i*.12,.35,'triangle',.08);
     });
+  }catch(e){}
+}
+function playGameOver(){
+  try{
+    const ctx=getAudio();
+    const now=ctx.currentTime;
+    const melody=[
+      [392,.00,.22],[330,.20,.22],[262,.40,.28],[196,.66,.34],[131,.96,.65]
+    ];
+    melody.forEach(([freq,delay,duration],i)=>{
+      playTone(freq,now+delay,duration,i<3?'square':'sawtooth',i<3?.12:.16);
+      if(i>=2)playTone(freq/2,now+delay,duration+.12,'triangle',.08);
+    });
+    playNoise(now+.62,.18,.12,'lowpass',520);
+    playNoise(now+.96,.45,.10,'lowpass',260);
   }catch(e){}
 }
 function flashScreen(color){
@@ -1472,9 +1523,31 @@ const ENEMIES=[
    <circle cx="30" cy="32" r="4" fill="rgba(170,0,255,.6)"/><circle cx="70" cy="32" r="4" fill="rgba(170,0,255,.6)"/>`,
 ];
 
-function drawEnemy(idx){
+const ENEMY_GRADE_PALETTES=[
+  ['#38b86b','#1f7545'],['#4bb8d8','#26718b'],['#8b6bd8','#513a9a'],
+  ['#e5a63b','#9a641d'],['#e35b4f','#932d2a'],['#ba4fd3','#702486'],['#4d4b70','#201e3c']
+];
+function buildUniqueEnemy(level,stage){
+  const [main,dark]=ENEMY_GRADE_PALETTES[level];
+  const eye=level<2?'#173b2b':level<4?'#412060':level<6?'#ffcf33':'#ff365e';
+  const crown=level===6?'<path d="M31 28 L36 10 L48 23 L59 8 L69 28Z" fill="#c8a6ff" stroke="#fff" stroke-width="1.5"/>':'';
+  const horns=level>=3?`<path d="M31 35 Q18 ${18-stage*3} 24 ${9+stage*4} Q35 20 39 35Z" fill="${dark}"/><path d="M69 35 Q82 ${18-stage*3} 76 ${9+stage*4} Q65 20 61 35Z" fill="${dark}"/>`:'';
+  const wings=level===1||level===4?`<path d="M30 48 Q9 ${25+stage*4} 13 62 Q23 54 34 65Z" fill="${dark}" opacity=".85"/><path d="M70 48 Q91 ${25+stage*4} 87 62 Q77 54 66 65Z" fill="${dark}" opacity=".85"/>`:'';
+  const antenna=level===2?`<path d="M50 31 Q${37+stage*12} 15 50 8" stroke="${dark}" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="50" cy="8" r="5" fill="#ffd95a"/>`:'';
+  const armor=level>=5?`<path d="M27 58 L38 48 L50 55 L62 48 L73 58 L68 84 L32 84Z" fill="${dark}" opacity=".88"/><path d="M50 55 V84 M33 66 H67" stroke="${main}" stroke-width="2" opacity=".8"/>`:'';
+  const stageMark=stage===0
+    ?`<circle cx="20" cy="55" r="8" fill="${main}"/><circle cx="80" cy="55" r="8" fill="${main}"/>`
+    :stage===1
+      ?`<path d="M30 34 L34 16 L42 32 L50 13 L58 32 L66 16 L70 34Z" fill="${dark}"/>`
+      :`<ellipse cx="50" cy="17" rx="25" ry="7" fill="none" stroke="#ffd95a" stroke-width="4"/><path d="M75 66 Q94 69 83 86" fill="none" stroke="${dark}" stroke-width="8" stroke-linecap="round"/>`;
+  const spots=Array.from({length:stage+1},(_,i)=>`<circle cx="${34+i*16}" cy="${67-(i%2)*8}" r="${3+stage}" fill="#fff" opacity=".24"/>`).join('');
+  const mouth=stage===0?'M42 61 Q50 67 58 61':stage===1?'M40 65 Q50 56 60 65':'M39 61 L45 67 L50 61 L55 67 L61 61';
+  return `${wings}${horns}${antenna}${crown}${stageMark}<ellipse cx="50" cy="61" rx="${29+stage*3}" ry="${25+stage*2}" fill="${dark}"/><ellipse cx="50" cy="50" rx="${24+stage}" ry="${23+stage}" fill="${main}"/>${armor}${spots}<circle cx="41" cy="45" r="7" fill="white"/><circle cx="59" cy="45" r="7" fill="white"/><circle cx="${42+stage}" cy="46" r="3.5" fill="${eye}"/><circle cx="${60-stage}" cy="46" r="3.5" fill="${eye}"/><path d="${mouth}" stroke="${eye}" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
+}
+function drawEnemy(level,stateStage=0){
   const svg=document.getElementById('enemy-svg');
-  svg.innerHTML=ENEMIES[idx%ENEMIES.length];
+  svg.innerHTML=buildUniqueEnemy(level,stateStage);
+  svg.setAttribute('aria-label',`${LEVEL_NAMES[level]} ステージ${stateStage+1}の敵`);
 }
 
 
@@ -1521,9 +1594,17 @@ function showDefeatAnimation(callback){
 function showDamageEffect(points){
   const area=document.querySelector('.enemy-area');
   const enemy=document.getElementById('enemy-svg');
-  enemy.classList.remove('damage');
-  void enemy.offsetWidth;
-  enemy.classList.add('damage');
+  enemy.getAnimations().forEach(animation=>animation.cancel());
+  enemy.animate([
+    {transform:'translateX(0) rotate(0) scale(1)',filter:'none'},
+    {transform:'translateX(-18px) rotate(-7deg) scale(.92)',filter:'brightness(2.5) saturate(2)',offset:.12},
+    {transform:'translateX(16px) rotate(6deg) scale(1.08)',filter:'brightness(2.2) saturate(2)',offset:.25},
+    {transform:'translateX(-13px) rotate(-5deg) scale(.95)',offset:.38},
+    {transform:'translateX(10px) rotate(4deg) scale(1.04)',offset:.52},
+    {transform:'translateX(-6px) rotate(-2deg)',offset:.68},
+    {transform:'translateX(4px) rotate(1deg)',offset:.84},
+    {transform:'translateX(0) rotate(0) scale(1)',filter:'none'}
+  ],{duration:650,easing:'cubic-bezier(.36,.07,.19,.97)'});
 
   const dmg=document.createElement('div');
   dmg.className='damage-pop';
@@ -1752,7 +1833,7 @@ function selectLevel(n){
   document.querySelectorAll('.level-card').forEach((c,i)=>c.classList.toggle('selected',i===n));
 }
 function startGame(){
-  state.stage=0;state.score=0;state.lives=3;state.combo=0;state.maxCombo=0;state.correct=0;state.wrongWords=[];state.reviewMode=false;state.scoreSaved=false;
+  state.stage=0;state.score=0;state.lives=3;state.combo=0;state.maxCombo=0;state.correct=0;state.wrongWords=[];state.attemptedWords=[];state.reviewWords=[];state.reviewMode=false;state.scoreSaved=false;
   applyWordSettings();
   const baseWords=WORDS[LEVEL_KEYS[state.level]];
   state.pool=state.wordOrder==='ordered'?[...baseWords]:shuffle(baseWords);
@@ -1763,9 +1844,12 @@ function startGame(){
 function loadStage(){
   const themeIdx=(state.level*STAGES+state.stage)%STAGE_THEMES.length;
   initBg(themeIdx);
-  drawEnemy(themeIdx);
+  drawEnemy(state.level,state.stage);
   const offset=(state.stage*Q_PER_STAGE)%state.pool.length;
   state.stageQ=(state.wordOrder==='ordered'?state.pool.slice(offset,offset+Q_PER_STAGE):shuffle(state.pool.slice(offset)).slice(0,Q_PER_STAGE));
+  if(!state.reviewMode){
+    state.reviewWords.push(...state.stageQ.map(word=>({...word,stage:state.stage+1})));
+  }
   state.qIndex=0;
   loadQuestion();
 }
@@ -1831,8 +1915,14 @@ function submitAnswer(){
   const correct=normalizeAnswer(getAnswerText(state.stageQ[state.qIndex]));
   if(normalizeAnswer(val)===correct)onCorrect();else onWrong(false);
 }
+function recordAttempt(type,isCorrect){
+  const word=state.stageQ[state.qIndex];
+  state.attemptedWords.push({...word,type,isCorrect,stage:state.stage+1});
+  if(!isCorrect)state.wrongWords.push({...word,type});
+}
 function onCorrect(){
   state.answered=true;clearInterval(state.timer);
+  recordAttempt('正解',true);
   state.combo++;state.maxCombo=Math.max(state.maxCombo,state.combo);state.correct++;
   const base=LEVEL_BASE_SCORES[state.level]||10;
   const timeBonus=Math.max(0,Math.floor(state.timeLeft*2));
@@ -1857,7 +1947,6 @@ function onCorrect(){
   fb.textContent=state.combo>=2?`✓ 正解！ ${state.combo}コンボ${multText}${quickText} ＋${pts}pt${recovered?' ｜ ライフ回復！':''}`:`✓ 正解！${quickText} ＋${pts}pt`;
   fb.className='feedback ok';
   document.getElementById('combo-disp').textContent=state.combo>=2?`🔥 ${state.combo} COMBO!${recovered?' ❤ +1':''}`:'';
-  animateEnemy('hit');
   showDamageEffect(pts);
   if(quickChoiceBonus)showQuickBonusEffect(pts);
   showPainFace();
@@ -1868,8 +1957,9 @@ function onCorrect(){
 }
 function onWrong(timeout){
   state.answered=true;clearInterval(state.timer);
-  state.combo=0;state.wrongWords.push({...state.stageQ[state.qIndex],type:timeout?'時間切れ':'不正解'});state.lives--;updateLives();
-  state.wrongWords.push({...state.stageQ[state.qIndex],type:'スキップ'});
+  state.combo=0;
+  recordAttempt(timeout?'時間切れ':'不正解',false);
+  state.lives--;updateLives();
   const correct=getAnswerText(state.stageQ[state.qIndex]);
   document.getElementById('answer-input').classList.add('wrong');
   const fb=document.getElementById('feedback');
@@ -1888,6 +1978,7 @@ function skipQuestion(){
   state.answered=true;
   clearInterval(state.timer);
   state.combo=0;
+  recordAttempt('スキップ',false);
   const correct=getAnswerText(state.stageQ[state.qIndex]);
   const fb=document.getElementById('feedback');
   fb.textContent=`スキップしました。正解: ${correct}`;
@@ -1925,7 +2016,7 @@ function gameOver(){endGame(false);}
 function endGame(win){
   clearInterval(state.timer);
   stopBattleBgm();
-  if(win)playGameClear();
+  if(win)playGameClear();else playGameOver();
   document.getElementById('result-grade').textContent=win?(state.score>500?'🏆':'🥇'):(state.correct>15?'💪':'😢');
   document.getElementById('result-title').textContent=win?'ゲームクリア！':'ゲームオーバー';
   document.getElementById('result-sub').textContent=win
@@ -2003,20 +2094,21 @@ function clearScoreHistory(){
 
 function showReview(){
   const list=document.getElementById('review-list');
-  const unique=[];
-  const seen=new Set();
-  state.wrongWords.forEach(w=>{
-    const key=w.j+'|'+w.e;
-    if(!seen.has(key)){seen.add(key);unique.push(w);}
+  const attemptsByWord=new Map();
+  state.attemptedWords.forEach(attempt=>attemptsByWord.set(attempt.stage+'|'+attempt.j+'|'+attempt.e,attempt));
+  const reviewItems=state.reviewWords.map(word=>{
+    const attempt=attemptsByWord.get(word.stage+'|'+word.j+'|'+word.e);
+    return attempt?{...word,type:attempt.type,isCorrect:attempt.isCorrect}:{...word,type:'未回答',isCorrect:false};
   });
-  if(unique.length===0){
-    list.innerHTML='<div class="review-empty">間違えた単語はありません。すごい！</div>';
+  if(reviewItems.length===0){
+    list.innerHTML='<div class="review-empty">まだ振り返る問題がありません。</div>';
   }else{
-    list.innerHTML=unique.map((w,i)=>`
-      <div class="review-item">
+    list.innerHTML=reviewItems.map((w,i)=>`
+      <div class="review-item${w.isCorrect?' correct-answer':''}">
+        <span class="review-status">${w.type}</span>
         <div class="review-j">${i+1}. ${w.j}</div>
         <div class="review-e">${w.e}</div>
-        <div class="review-type">${w.type}</div>
+        <div class="review-type">ステージ ${w.stage}</div>
       </div>
     `).join('');
   }
@@ -2039,18 +2131,28 @@ function retryWrongWords(){
   show('screen-game');
   startBattleBgm();
   initBg(0);
-  drawEnemy(0);
+  drawEnemy(state.level,0);
   loadQuestion();
 }
 
 function retryGame(){startGame();}
-function goMenu(){stopBattleBgm();show('screen-title');initBg(0);}
+function goMenu(){stopBattleBgm();show('screen-title');initBg(0);startMenuBgm();}
 function show(id){
+  if(id!=='screen-title')stopMenuBgm();
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  if(id==='screen-title'&&!bgAnim)initBg(0);
+  if(id==='screen-title'){
+    if(!bgAnim)initBg(0);
+    startMenuBgm();
+  }
 }
 document.getElementById('answer-input').addEventListener('keydown',e=>{if(e.key==='Enter')submitAnswer();});
+document.addEventListener('pointerdown',()=>{
+  if(document.getElementById('screen-title').classList.contains('active'))startMenuBgm();
+},{passive:true});
+document.addEventListener('keydown',()=>{
+  if(document.getElementById('screen-title').classList.contains('active'))startMenuBgm();
+});
 window.addEventListener('resize',()=>{if(bgAnim)initBg((state.level*STAGES+state.stage)%STAGE_THEMES.length);});
 selectLevel(0);
 selectMode('jp2en');
