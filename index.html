@@ -180,8 +180,9 @@ body{font-family:'Nunito',sans-serif;color:var(--c-text);min-height:100vh;overfl
 .choice-btn.wrong{border-color:var(--c-red);background:rgba(60,15,15,.88)}
 
 
-.range-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-.range-select,.order-select{width:100%;padding:9px 10px;border-radius:10px;border:1px solid rgba(108,99,255,.35);background:rgba(15,15,35,.85);color:var(--c-text);font-size:13px;font-weight:800;font-family:'Nunito',sans-serif;outline:none}
+.range-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:10px}
+.range-select,.order-select,.count-input{width:100%;padding:9px 10px;border-radius:10px;border:1px solid rgba(108,99,255,.35);background:rgba(15,15,35,.85);color:var(--c-text);font-size:13px;font-weight:800;font-family:'Nunito',sans-serif;outline:none}
+.count-input{margin-top:6px}
 .range-label{font-size:12px;color:var(--c-muted);margin-bottom:4px;font-weight:800}
 
 
@@ -304,14 +305,24 @@ body{font-family:'Nunito',sans-serif;color:var(--c-text);min-height:100vh;overfl
 
     <div class="upload-box">
       <div class="upload-title">Excel/CSVから単語を読み込む</div>
-      <div class="upload-desc">形式：1列目=No、2列目=英単語、3列目=日本語訳。読み込み後、No範囲を100単語きざみで選べます。</div>
+      <div class="upload-desc">形式：1列目=No、2列目=英単語、3列目=日本語訳。No範囲は50個単位のメニュー、または「始めの値」「終わりの値」を直接入力して選べます。</div>
       <input class="upload-input" type="file" id="word-file-input" accept=".xlsx,.xls,.csv" onchange="loadWordFile(event)">
+      <select id="count-select" style="display:none"><option value="range">range</option></select>
+      <input id="count-custom-input" type="hidden">
       <div class="range-row">
         <div>
-          <div class="range-label">No範囲</div>
-          <select class="range-select" id="range-select" onchange="applyWordSettings()">
+          <div class="range-label">No範囲（50個単位）</div>
+          <select class="range-select" id="range-select" onchange="selectNoRange()">
             <option value="all">すべて</option>
           </select>
+        </div>
+        <div>
+          <div class="range-label">始めの値</div>
+          <input class="count-input" id="range-start-input" type="number" min="1" step="1" placeholder="例：1" onchange="applyWordSettings()" oninput="applyWordSettings()">
+        </div>
+        <div>
+          <div class="range-label">終わりの値</div>
+          <input class="count-input" id="range-end-input" type="number" min="1" step="1" placeholder="例：50" onchange="applyWordSettings()" oninput="applyWordSettings()">
         </div>
         <div>
           <div class="range-label">出題順</div>
@@ -1855,11 +1866,11 @@ function loadWordFile(event){
 
       const rangeSelect=document.getElementById('range-select');
       const maxNo=Math.max(...imported.map(w=>w.no));
-      const maxBlock=Math.ceil(maxNo/100);
+      const maxBlock=Math.ceil(maxNo/50);
       rangeSelect.innerHTML='<option value="all">すべて</option>';
       for(let i=0;i<maxBlock;i++){
-        const start=i*100+1;
-        const end=(i+1)*100;
+        const start=i*50+1;
+        const end=(i+1)*50;
         const count=imported.filter(w=>w.no>=start&&w.no<=end).length;
         if(count>0){
           const opt=document.createElement('option');
@@ -1882,10 +1893,19 @@ function loadWordFile(event){
 function applyWordSettings(){
   if(!state.customWordsAll||state.customWordsAll.length===0)return;
   const rangeValue=document.getElementById('range-select')?.value||'all';
+  const countValue=document.getElementById('count-select')?.value||'range';
   state.wordOrder=document.getElementById('order-select')?.value||'random';
 
   let selected=[...state.customWordsAll];
-  if(rangeValue!=='all'){
+  if(countValue==='all'){
+    selected=[...state.customWordsAll];
+  }else if(countValue==='custom'){
+    const customEnd=Number.parseInt(document.getElementById('count-custom-input')?.value||'',10);
+    if(customEnd>0)selected=selected.filter(w=>w.no>=1&&w.no<=customEnd);
+  }else if(countValue!=='range'){
+    const count=Number.parseInt(countValue,10);
+    selected=selected.filter(w=>w.no>=1&&w.no<=count);
+  }else if(rangeValue!=='all'){
     const parts=rangeValue.split('-').map(Number);
     selected=selected.filter(w=>w.no>=parts[0]&&w.no<=parts[1]);
   }
@@ -2011,6 +2031,16 @@ function resetTimer(){
   updateTimerUI();
   state.timer=setInterval(()=>{
     if(state.answered)return;
+    state.timeLeft-=.1;
+    if(state.timeLeft<=0){state.timeLeft=0;updateTimerUI();clearInterval(state.timer);onWrong(true);}
+    else updateTimerUI();
+  },100);
+}
+function resumeTimer(){
+  clearInterval(state.timer);
+  updateTimerUI();
+  state.timer=setInterval(()=>{
+    if(state.answered){clearInterval(state.timer);return;}
     state.timeLeft-=.1;
     if(state.timeLeft<=0){state.timeLeft=0;updateTimerUI();clearInterval(state.timer);onWrong(true);}
     else updateTimerUI();
@@ -2157,7 +2187,7 @@ function showRetireModal(){
 }
 function hideRetireModal(){
   document.getElementById('retire-modal').classList.remove('show');
-  resetTimer();
+  resumeTimer();
 }
 function confirmRetire(){
   document.getElementById('retire-modal').classList.remove('show');
@@ -2252,6 +2282,162 @@ function show(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   if(id==='screen-title'&&!bgAnim)initBg(0);
+}
+
+function populateNoRangeMenu(){
+  if(!state.customWordsAll||state.customWordsAll.length===0)return;
+  const rangeSelect=document.getElementById('range-select');
+  if(!rangeSelect)return;
+  const all=[...state.customWordsAll].sort((a,b)=>a.no-b.no);
+  const minNo=Math.min(...all.map(w=>w.no));
+  const maxNo=Math.max(...all.map(w=>w.no));
+  rangeSelect.innerHTML='<option value="all">すべて</option>';
+  for(let start=minNo;start<=maxNo;start+=50){
+    const end=Math.min(start+49,maxNo);
+    const count=all.filter(w=>w.no>=start&&w.no<=end).length;
+    if(count>0){
+      const opt=document.createElement('option');
+      opt.value=`${start}-${end}`;
+      opt.textContent=`No${start}〜${end}（${count}語）`;
+      rangeSelect.appendChild(opt);
+    }
+  }
+}
+
+function selectNoRange(){
+  const rangeValue=document.getElementById('range-select')?.value||'all';
+  const all=state.customWordsAll&&state.customWordsAll.length?[...state.customWordsAll].sort((a,b)=>a.no-b.no):[];
+  const startInput=document.getElementById('range-start-input');
+  const endInput=document.getElementById('range-end-input');
+  if(rangeValue==='all'){
+    if(all.length){
+      if(startInput)startInput.value=Math.min(...all.map(w=>w.no));
+      if(endInput)endInput.value=Math.max(...all.map(w=>w.no));
+    }
+  }else{
+    const [start,end]=rangeValue.split('-').map(Number);
+    if(startInput)startInput.value=start;
+    if(endInput)endInput.value=end;
+  }
+  applyWordSettings();
+}
+
+const __originalLoadWordFile=loadWordFile;
+function loadWordFile(event){
+  __originalLoadWordFile(event);
+  setTimeout(()=>{
+    if(!state.customWordsAll||state.customWordsAll.length===0)return;
+    const all=[...state.customWordsAll].sort((a,b)=>a.no-b.no);
+    const startInput=document.getElementById('range-start-input');
+    const endInput=document.getElementById('range-end-input');
+    if(startInput)startInput.value='';
+    if(endInput)endInput.value='';
+    populateNoRangeMenu();
+    applyWordSettings();
+  },0);
+}
+
+function applyWordSettings(){
+  if(!state.customWordsAll||state.customWordsAll.length===0)return;
+  const rangeSelect=document.getElementById('range-select');
+  if(rangeSelect&&rangeSelect.options.length<=1)populateNoRangeMenu();
+  state.wordOrder=document.getElementById('order-select')?.value||'random';
+
+  const all=[...state.customWordsAll].sort((a,b)=>a.no-b.no);
+  const minNo=Math.min(...all.map(w=>w.no));
+  const maxNo=Math.max(...all.map(w=>w.no));
+  const startInput=document.getElementById('range-start-input');
+  const endInput=document.getElementById('range-end-input');
+  let startNo=Number.parseInt(startInput?.value||String(minNo),10);
+  let endNo=Number.parseInt(endInput?.value||String(maxNo),10);
+  if(!Number.isFinite(startNo)||startNo<1)startNo=minNo;
+  if(!Number.isFinite(endNo)||endNo<1)endNo=maxNo;
+  if(startNo>endNo){
+    const temp=startNo;
+    startNo=endNo;
+    endNo=temp;
+  }
+
+  const selected=all.filter(w=>w.no>=startNo&&w.no<=endNo);
+  WORDS.custom=selected.length>0?selected:all;
+
+  const status=document.getElementById('upload-status');
+  if(status){
+    const orderText=state.wordOrder==='ordered'?'順番通り':'ランダム';
+    status.textContent=`現在の単語数：${WORDS.custom.length}語 / No${startNo}〜${endNo} / 出題順：${orderText}`;
+  }
+}
+
+function loadWordFile(event){
+  const file=event.target.files[0];
+  const status=document.getElementById('upload-status');
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      let rows=[];
+      if(file.name.toLowerCase().endsWith('.csv')){
+        rows=String(e.target.result).split(/\r?\n/).map(line=>line.split(',').map(v=>v.trim()));
+      }else{
+        if(typeof XLSX==='undefined'){
+          status.textContent='Excel読み込みに必要な機能を取得できませんでした。CSVで試してください。';
+          return;
+        }
+        const data=new Uint8Array(e.target.result);
+        const workbook=XLSX.read(data,{type:'array'});
+        const sheet=workbook.Sheets[workbook.SheetNames[0]];
+        rows=XLSX.utils.sheet_to_json(sheet,{header:1});
+      }
+
+      const imported=[];
+      rows.forEach(row=>{
+        if(!row||row.length<3)return;
+        const noRaw=String(row[0]||'').trim();
+        const en=String(row[1]||'').trim();
+        const ja=String(row[2]||'').trim();
+        const no=Number.parseInt(noRaw,10);
+        if(!no||!en||!ja)return;
+        if(noRaw.toLowerCase()==='no'||en==='英単語'||ja==='日本語訳'||ja==='和訳')return;
+        imported.push({no:no,e:en,j:ja});
+      });
+
+      imported.sort((a,b)=>a.no-b.no);
+      if(imported.length<4){
+        status.textContent='4語以上必要です。1列目=No、2列目=英単語、3列目=日本語訳にしてください。';
+        return;
+      }
+
+      state.customWordsAll=imported;
+      WORDS.custom=imported;
+      LEVEL_KEYS.forEach((_,i)=>LEVEL_KEYS[i]='custom');
+
+      const all=[...imported].sort((a,b)=>a.no-b.no);
+      const minNo=Math.min(...all.map(w=>w.no));
+      const maxNo=Math.max(...all.map(w=>w.no));
+      const startInput=document.getElementById('range-start-input');
+      const endInput=document.getElementById('range-end-input');
+      if(startInput)startInput.value='';
+      if(endInput)endInput.value='';
+
+      const rangeSelect=document.getElementById('range-select');
+      if(rangeSelect){
+        const options=['<option value="all">すべて</option>'];
+        for(let start=minNo;start<=maxNo;start+=50){
+          const end=Math.min(start+49,maxNo);
+          const count=all.filter(w=>w.no>=start&&w.no<=end).length;
+          if(count>0)options.push(`<option value="${start}-${end}">No${start}〜${end}（${count}語）</option>`);
+        }
+        rangeSelect.innerHTML=options.join('');
+      }
+
+      applyWordSettings();
+      status.textContent=`${imported.length}語を読み込みました。No範囲メニューまたは始め/終わりの値で選べます。`;
+    }catch(err){
+      status.textContent='読み込みに失敗しました。1列目=No、2列目=英単語、3列目=日本語訳にしてください。';
+    }
+  };
+  if(file.name.toLowerCase().endsWith('.csv'))reader.readAsText(file,'UTF-8');
+  else reader.readAsArrayBuffer(file);
 }
 
 /* Final enemy renderer: one explicit character per grade and stage. */
