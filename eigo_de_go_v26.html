@@ -1,0 +1,2321 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --c-primary:#6c63ff;--c-gold:#ffd700;
+  --c-green:#4caf50;--c-red:#f44336;--c-text:#f0f0ff;--c-muted:#8888aa;
+}
+body{font-family:'Nunito',sans-serif;color:var(--c-text);min-height:100vh;overflow-x:hidden;position:relative}
+#bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+#app{max-width:680px;margin:0 auto;padding:12px;position:relative;z-index:1}
+.screen{display:none;animation:fadeIn .3s ease}
+.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* surfaces */
+.card{background:rgba(22,21,62,.82);backdrop-filter:blur(8px);border-radius:16px;border:1px solid rgba(108,99,255,.25)}
+
+/* TITLE */
+.title-hero{text-align:center;padding:24px 0 16px}
+.title-logo{font-family:'Fredoka One',cursive;font-size:48px;background:linear-gradient(135deg,#6c63ff,#ff6584);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;margin-bottom:6px}
+.title-sub{font-size:14px;color:var(--c-muted);margin-bottom:20px}
+.level-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.level-card{background:rgba(22,21,62,.7);border:1.5px solid transparent;border-radius:12px;padding:14px 12px;cursor:pointer;transition:all .2s}
+.level-card:hover,.level-card.selected{border-color:var(--c-primary);background:rgba(30,26,58,.9)}
+.lv-badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;margin-bottom:6px}
+.lv-name{font-size:16px;font-weight:800;margin-bottom:2px}
+.lv-desc{font-size:12px;color:var(--c-muted)}
+.lv-easy{border-left:3px solid #4caf50}.lv-med{border-left:3px solid #ff9800}
+.lv-hard{border-left:3px solid #f44336}.lv-exp{border-left:3px solid #9c27b0}
+.badge-easy{background:#1b3a1b;color:#4caf50}.badge-med{background:#3a2a10;color:#ff9800}
+.badge-hard{background:#3a1515;color:#f44336}.badge-exp{background:#2a1535;color:#ce93d8}
+.start-btn{width:100%;padding:14px;font-family:'Fredoka One',cursive;font-size:22px;background:linear-gradient(135deg,#6c63ff,#9c27b0);border:none;border-radius:14px;color:#fff;cursor:pointer;transition:transform .15s,box-shadow .15s;box-shadow:0 4px 20px rgba(108,99,255,.4)}
+.start-btn:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(108,99,255,.5)}
+.rules-box{background:rgba(22,21,62,.6);border-radius:12px;padding:14px;margin-bottom:16px;font-size:13px;line-height:1.8;color:var(--c-muted)}
+.rules-box b{color:var(--c-text)}
+
+/* HUD */
+.hud{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.hud-score{font-family:'Fredoka One',cursive;font-size:28px;color:var(--c-gold);flex:1;min-width:80px}
+.hud-lives{display:flex;gap:4px;align-items:center}
+.heart{font-size:30px;line-height:1;color:#ff2f45;text-shadow:0 0 10px rgba(255,47,69,.65);transition:transform .2s}
+.heart.lost{color:#ff2f45;opacity:.28;text-shadow:none}
+.timer-wrap{flex:1;min-width:100px;text-align:right}
+.timer-bar{height:8px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden;margin-top:4px}
+.timer-fill{height:100%;border-radius:4px;transition:width .1s linear,background .3s}
+.timer-num{font-size:13px;font-weight:700;color:var(--c-muted)}
+
+/* RETIRE button */
+.retire-btn{padding:5px 12px;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif;background:rgba(244,67,54,.15);border:1px solid rgba(244,67,54,.4);border-radius:8px;color:#f88;cursor:pointer;transition:all .2s;white-space:nowrap}
+.retire-btn:hover{background:rgba(244,67,54,.3);border-color:#f44336}
+
+/* ENEMY */
+.enemy-area{display:flex;justify-content:center;margin-bottom:10px;min-height:90px;align-items:flex-end}
+#enemy-svg{transition:transform .15s}
+#enemy-svg.hit{animation:enemyHit .35s ease}
+#enemy-svg.miss{animation:enemyMock .4s ease}
+@keyframes enemyHit{0%{transform:scale(1)}30%{transform:scale(.85) rotate(-5deg)}70%{transform:scale(1.1)}100%{transform:scale(1)}}
+@keyframes enemyMock{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px) rotate(-3deg)}75%{transform:translateX(8px) rotate(3deg)}}
+
+/* COMBO */
+.combo-banner{height:24px;margin-bottom:6px;text-align:center}
+.combo-text{font-family:'Fredoka One',cursive;font-size:18px;color:var(--c-gold);animation:popIn .3s ease}
+@keyframes popIn{0%{transform:scale(.5);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+
+.stage-pill{text-align:center;margin-bottom:8px}
+.stage-pill span{background:rgba(22,21,62,.7);border-radius:20px;padding:4px 14px;font-size:12px;font-weight:700;color:var(--c-muted);letter-spacing:.06em}
+
+/* QUESTION */
+.question-card{background:rgba(22,21,62,.82);backdrop-filter:blur(8px);border-radius:16px;padding:18px;margin-bottom:12px;text-align:center;border:1px solid rgba(108,99,255,.25)}
+.q-label{font-size:12px;color:var(--c-muted);margin-bottom:8px;letter-spacing:.06em;text-transform:uppercase}
+.q-meaning{font-size:36px;font-weight:800;color:var(--c-text);margin-bottom:4px;line-height:1.2}
+.q-hint{font-size:13px;color:var(--c-muted);min-height:18px}
+
+.input-row{display:flex;gap:8px;margin-bottom:8px}
+#answer-input{flex:1;padding:12px 16px;font-size:18px;font-weight:700;font-family:'Nunito',sans-serif;background:rgba(15,15,35,.8);border:2px solid rgba(108,99,255,.3);border-radius:12px;color:var(--c-text);outline:none;transition:border-color .2s;text-transform:lowercase}
+#answer-input:focus{border-color:var(--c-primary)}
+#answer-input.correct{border-color:var(--c-green);background:rgba(15,32,16,.85)}
+#answer-input.wrong{border-color:var(--c-red);background:rgba(32,15,15,.85);animation:shake .3s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.submit-btn{padding:12px 20px;background:var(--c-primary);border:none;border-radius:12px;color:#fff;font-size:18px;font-weight:800;cursor:pointer;transition:background .2s,transform .15s}
+.submit-btn:hover{background:#5a52ee;transform:scale(1.03)}
+.submit-btn:active{transform:scale(.96)}
+.feedback{text-align:center;min-height:22px;font-size:14px;font-weight:700;margin-bottom:6px}
+.feedback.ok{color:var(--c-green)}.feedback.bad{color:var(--c-red)}
+.hint-btn-row{text-align:center}
+.hint-btn{background:transparent;border:1px solid rgba(136,136,170,.4);border-radius:8px;color:var(--c-muted);font-size:12px;padding:5px 14px;cursor:pointer;font-family:'Nunito',sans-serif;transition:all .2s}
+.hint-btn:hover:not(:disabled){border-color:var(--c-primary);color:var(--c-text)}
+.hint-btn:disabled{opacity:.4;cursor:default}
+.progress-dots{display:flex;gap:6px;justify-content:center;margin:8px 0}
+.p-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.1);transition:background .3s}
+.p-dot.done{background:var(--c-primary)}.p-dot.current{background:var(--c-gold);box-shadow:0 0 6px var(--c-gold)}
+
+/* RETIRE MODAL */
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:100;display:flex;align-items:center;justify-content:center;display:none}
+.modal-overlay.show{display:flex}
+.modal-box{background:#1a1a2e;border:1px solid rgba(108,99,255,.4);border-radius:16px;padding:28px 24px;text-align:center;max-width:320px;width:90%}
+.modal-title{font-family:'Fredoka One',cursive;font-size:24px;margin-bottom:8px;color:var(--c-text)}
+.modal-sub{font-size:14px;color:var(--c-muted);margin-bottom:20px}
+.modal-btns{display:flex;gap:10px}
+.modal-yes{flex:1;padding:11px;background:#f44336;border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;transition:opacity .2s}
+.modal-yes:hover{opacity:.85}
+.modal-no{flex:1;padding:11px;background:rgba(108,99,255,.2);border:1px solid rgba(108,99,255,.4);border-radius:10px;color:var(--c-text);font-size:15px;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;transition:opacity .2s}
+.modal-no:hover{opacity:.85}
+
+/* RESULT / STAGE-CLEAR */
+.result-wrap,.stageclear{text-align:center;padding:16px 0}
+.result-grade{font-family:'Fredoka One',cursive;font-size:80px;line-height:1;margin-bottom:4px;animation:popIn .5s .1s both}
+.result-title{font-size:22px;font-weight:800;margin-bottom:6px}
+.result-sub{font-size:14px;color:var(--c-muted);margin-bottom:20px}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px}
+.stat-box{background:rgba(22,21,62,.8);border-radius:10px;padding:12px 6px;text-align:center}
+.stat-val{font-family:'Fredoka One',cursive;font-size:26px;color:var(--c-gold)}
+.stat-lbl{font-size:11px;color:var(--c-muted);margin-top:2px}
+.result-btns{display:flex;gap:10px}
+.retry-btn{flex:1;padding:13px;font-family:'Fredoka One',cursive;font-size:18px;background:var(--c-primary);border:none;border-radius:12px;color:#fff;cursor:pointer;transition:all .2s}
+.retry-btn:hover{background:#5a52ee;transform:translateY(-1px)}
+.menu-btn{flex:1;padding:13px;font-family:'Fredoka One',cursive;font-size:18px;background:rgba(22,21,62,.8);border:1px solid rgba(108,99,255,.3);border-radius:12px;color:var(--c-text);cursor:pointer;transition:all .2s}
+.menu-btn:hover{border-color:var(--c-primary);transform:translateY(-1px)}
+.stageclear-title{font-family:'Fredoka One',cursive;font-size:42px;color:var(--c-gold);margin-bottom:8px;animation:popIn .4s ease}
+.stageclear-sub{color:var(--c-muted);font-size:15px;margin-bottom:20px}
+.next-btn{width:100%;padding:14px;font-family:'Fredoka One',cursive;font-size:22px;background:linear-gradient(135deg,var(--c-green),#2e7d32);border:none;border-radius:14px;color:#fff;cursor:pointer;transition:transform .15s;box-shadow:0 4px 20px rgba(76,175,80,.35)}
+.next-btn:hover{transform:translateY(-2px)}
+
+/* SE flash */
+.se-flash{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:50;opacity:0;transition:opacity .15s}
+
+.time-settings{background:rgba(22,21,62,.6);border-radius:12px;padding:14px;margin-bottom:16px}
+.time-settings-title{font-size:13px;font-weight:800;color:var(--c-text);margin-bottom:10px}
+.time-options{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.time-card{background:rgba(15,15,35,.75);border:1.5px solid rgba(108,99,255,.25);border-radius:10px;padding:10px 6px;color:var(--c-text);font-size:14px;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;transition:all .2s}
+.time-card:hover,.time-card.selected{border-color:var(--c-gold);background:rgba(40,34,70,.9);transform:translateY(-1px)}
+.action-row{display:flex;gap:8px;margin-bottom:8px}
+.skip-btn{width:100%;padding:10px 12px;background:rgba(255,152,0,.16);border:1px solid rgba(255,152,0,.45);border-radius:12px;color:#ffb74d;font-size:15px;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;transition:all .2s}
+.skip-btn:hover{background:rgba(255,152,0,.28);border-color:#ff9800}
+
+
+.review-list{display:flex;flex-direction:column;gap:8px;margin:14px 0 18px;max-height:260px;overflow:auto;text-align:left}
+.review-item{background:rgba(15,15,35,.8);border:1px solid rgba(108,99,255,.25);border-radius:10px;padding:10px 12px}
+.review-item.correct-answer{opacity:.42;filter:saturate(.55)}
+.review-item.correct-answer:hover{opacity:.72}
+.review-status{float:right;font-size:11px;font-weight:800;padding:2px 7px;border-radius:999px;background:rgba(255,68,68,.18);color:#ff8b8b}
+.review-item.correct-answer .review-status{background:rgba(0,255,136,.16);color:var(--c-green)}
+.review-j{font-size:16px;font-weight:800;color:var(--c-text);margin-bottom:3px}
+.review-e{font-size:14px;color:var(--c-gold);font-weight:800}
+.review-type{font-size:11px;color:var(--c-muted);margin-top:3px}
+.review-empty{font-size:14px;color:var(--c-muted);margin:14px 0 18px}
+.review-btn{width:100%;padding:12px;font-family:'Nunito',sans-serif;font-size:16px;font-weight:800;background:rgba(255,215,0,.15);border:1px solid rgba(255,215,0,.45);border-radius:12px;color:var(--c-gold);cursor:pointer;transition:all .2s;margin-bottom:10px}
+.review-btn:hover{background:rgba(255,215,0,.25);border-color:var(--c-gold)}
+
+
+.history-list{display:flex;flex-direction:column;gap:8px;margin:14px 0 18px;max-height:300px;overflow:auto;text-align:left}
+.history-item{background:rgba(15,15,35,.8);border:1px solid rgba(108,99,255,.25);border-radius:10px;padding:10px 12px}
+.history-main{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.history-score{font-family:'Fredoka One',cursive;font-size:24px;color:var(--c-gold)}
+.history-level{font-size:14px;font-weight:800;color:var(--c-text)}
+.history-sub{font-size:12px;color:var(--c-muted);margin-top:4px;line-height:1.5}
+.history-empty{font-size:14px;color:var(--c-muted);margin:14px 0 18px}
+.history-btn{width:100%;padding:12px;font-family:'Nunito',sans-serif;font-size:16px;font-weight:800;background:rgba(108,99,255,.18);border:1px solid rgba(108,99,255,.45);border-radius:12px;color:var(--c-text);cursor:pointer;transition:all .2s;margin-top:10px}
+.history-btn:hover{background:rgba(108,99,255,.3);border-color:var(--c-primary)}
+.clear-history-btn{width:100%;padding:10px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;background:rgba(244,67,54,.15);border:1px solid rgba(244,67,54,.4);border-radius:12px;color:#f88;cursor:pointer;transition:all .2s;margin-bottom:10px}
+.clear-history-btn:hover{background:rgba(244,67,54,.28);border-color:#f44336}
+
+
+.life-recover{animation:lifeRecover .45s ease;color:#ff2f45}
+@keyframes lifeRecover{0%{transform:scale(.8)}50%{transform:scale(1.35)}100%{transform:scale(1)}}
+
+
+.upload-box{background:rgba(22,21,62,.6);border-radius:12px;padding:14px;margin-bottom:16px}
+.upload-title{font-size:13px;font-weight:800;color:var(--c-text);margin-bottom:8px}
+.upload-desc{font-size:12px;color:var(--c-muted);line-height:1.6;margin-bottom:10px}
+.upload-input{width:100%;font-size:12px;color:var(--c-muted);margin-bottom:8px}
+.upload-status{font-size:12px;color:var(--c-gold);min-height:16px}
+.choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.choice-btn{padding:12px 10px;background:rgba(15,15,35,.85);border:2px solid rgba(108,99,255,.3);border-radius:12px;color:var(--c-text);font-size:16px;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;transition:all .2s;min-height:52px}
+.choice-btn:hover{border-color:var(--c-primary);transform:translateY(-1px)}
+.choice-btn.correct{border-color:var(--c-green);background:rgba(15,60,25,.88)}
+.choice-btn.wrong{border-color:var(--c-red);background:rgba(60,15,15,.88)}
+
+
+.range-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.range-select,.order-select{width:100%;padding:9px 10px;border-radius:10px;border:1px solid rgba(108,99,255,.35);background:rgba(15,15,35,.85);color:var(--c-text);font-size:13px;font-weight:800;font-family:'Nunito',sans-serif;outline:none}
+.range-label{font-size:12px;color:var(--c-muted);margin-bottom:4px;font-weight:800}
+
+
+.enemy-area{position:relative}
+.damage-pop{position:absolute;left:50%;top:0;transform:translateX(-50%);font-family:'Fredoka One',cursive;font-size:30px;color:#ffef5a;text-shadow:0 3px 0 #8a2500,0 0 14px rgba(255,54,54,.9);pointer-events:none;z-index:8;animation:damagePop .85s ease-out forwards}
+@keyframes damagePop{0%{opacity:0;transform:translate(-50%,16px) scale(.45)}16%{opacity:1;transform:translate(-50%,-8px) scale(1.35) rotate(-4deg)}100%{opacity:0;transform:translate(-50%,-50px) scale(.9) rotate(3deg)}}
+#enemy-svg.damage{animation:enemyDamage .72s cubic-bezier(.2,.9,.25,1.15);transform-origin:50% 65%}
+@keyframes enemyDamage{0%{transform:translate(0,0) rotate(0) scale(1);filter:none}9%{transform:translate(-18px,-3px) rotate(-9deg) scale(.9);filter:brightness(2.7) saturate(2.5) hue-rotate(-22deg)}18%{transform:translate(16px,2px) rotate(8deg) scale(1.09);filter:brightness(2.6) saturate(2.2) hue-rotate(-18deg)}30%{transform:translate(-13px,1px) rotate(-7deg) scale(.96);filter:brightness(2) saturate(1.8)}44%{transform:translate(10px,-1px) rotate(5deg) scale(1.04);filter:brightness(1.6) saturate(1.5)}62%{transform:translate(-5px,0) rotate(-2deg) scale(1);filter:none}100%{transform:translate(0,0) rotate(0) scale(1);filter:none}}
+.hit-spark{position:absolute;width:10px;height:10px;border-radius:50%;background:#ffd700;box-shadow:0 0 12px #ffd700;pointer-events:none;z-index:4;animation:sparkBurst .55s ease-out forwards}
+@keyframes sparkBurst{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.2)}}
+.enemy-impact{position:absolute;left:50%;top:39px;width:92px;height:60px;transform:translate(-50%,-50%);pointer-events:none;z-index:7;animation:impactFlash .42s ease-out forwards}
+.enemy-impact::before,.enemy-impact::after{content:'';position:absolute;left:50%;top:50%;width:94px;height:15px;border-radius:999px;background:linear-gradient(90deg,transparent,#fff 15%,#ff3333 50%,#ffd700 82%,transparent);box-shadow:0 0 18px rgba(255,60,40,.95);transform:translate(-50%,-50%) rotate(-24deg)}
+.enemy-impact::after{width:72px;height:10px;transform:translate(-50%,-50%) rotate(28deg);background:linear-gradient(90deg,transparent,#fff 18%,#ff7a00 55%,#ffd700 84%,transparent)}
+@keyframes impactFlash{0%{opacity:0;transform:translate(-50%,-50%) scale(.45) rotate(-8deg)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.24) rotate(3deg)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.7) rotate(10deg)}}
+
+
+.enemy-face-overlay{position:absolute;left:50%;top:22px;transform:translateX(-50%);font-family:'Fredoka One',cursive;font-size:34px;letter-spacing:2px;color:#fff;text-shadow:0 3px 0 #7a1740,0 0 12px rgba(255,255,255,.9);pointer-events:none;z-index:9;animation:painFace .55s ease-out forwards}
+@keyframes painFace{0%{opacity:0;transform:translateX(-50%) scale(.45) rotate(-12deg)}20%{opacity:1;transform:translateX(-50%) scale(1.2) rotate(7deg)}100%{opacity:0;transform:translateX(-50%) scale(.88) rotate(0deg)}}
+#enemy-svg.defeated{animation:enemyDefeated 1.18s ease-in forwards;transform-origin:50% 86%}
+@keyframes enemyDefeated{0%{opacity:1;transform:translateY(0) rotate(0) scale(1);filter:brightness(1)}16%{transform:translateY(-14px) rotate(-13deg) scale(1.12);filter:brightness(2.5) saturate(1.8)}38%{opacity:1;transform:translateY(14px) rotate(20deg) scale(.94);filter:brightness(.9) saturate(.75)}68%{opacity:.9;transform:translateY(42px) rotate(78deg) scale(.78);filter:brightness(.58) saturate(.45)}100%{opacity:0;transform:translateY(72px) rotate(94deg) scale(.48);filter:brightness(.35) blur(2px) saturate(.25)}}
+.defeat-burst{position:absolute;left:50%;top:34px;transform:translate(-50%,-50%);font-family:'Fredoka One',cursive;font-size:36px;color:#ffd700;text-shadow:0 3px 0 #8a2500,0 0 18px rgba(255,215,0,.95);pointer-events:none;z-index:10;animation:defeatBurst 1.05s ease-out forwards}
+@keyframes defeatBurst{0%{opacity:0;transform:translate(-50%,-50%) scale(.28) rotate(-10deg)}22%{opacity:1;transform:translate(-50%,-78%) scale(1.24) rotate(4deg)}100%{opacity:0;transform:translate(-50%,-136%) scale(.82) rotate(0)}}
+.defeat-shadow{position:absolute;left:50%;bottom:2px;width:110px;height:20px;border-radius:50%;background:radial-gradient(ellipse,rgba(0,0,0,.42),rgba(0,0,0,0) 68%);transform:translateX(-50%) scale(.4);pointer-events:none;z-index:2;animation:defeatShadow 1.05s ease-out forwards}
+@keyframes defeatShadow{0%{opacity:0;transform:translateX(-50%) scale(.25)}28%{opacity:.65;transform:translateX(-50%) scale(1.06)}100%{opacity:0;transform:translateX(-50%) scale(1.35)}}
+.defeat-smoke{position:absolute;left:50%;bottom:8px;width:18px;height:18px;border-radius:50%;background:rgba(210,210,230,.78);box-shadow:0 0 16px rgba(255,255,255,.55);pointer-events:none;z-index:3;animation:defeatSmoke .95s ease-out forwards}
+@keyframes defeatSmoke{0%{opacity:0;transform:translate(-50%,0) scale(.25)}25%{opacity:.82}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),var(--dy)) scale(2.2)}}
+
+.quick-bonus-burst{position:fixed;left:50%;top:72%;transform:translate(-50%,-50%);z-index:90;pointer-events:none;text-align:center;font-family:'Fredoka One',cursive;animation:quickBonusBurst 1.05s ease-out forwards;filter:drop-shadow(0 0 18px rgba(255,215,0,.85))}
+.quick-bonus-ring{position:absolute;left:50%;top:50%;width:230px;height:230px;border:8px solid rgba(255,215,0,.85);border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 34px rgba(255,215,0,.9),inset 0 0 26px rgba(255,255,255,.45);animation:quickBonusRing 1.05s ease-out forwards}
+.quick-bonus-main{position:relative;padding:18px 24px;border-radius:18px;background:linear-gradient(135deg,#fff7a8,#ffd700 45%,#ff7a00);color:#2b1600;font-size:42px;line-height:1;text-shadow:0 2px 0 rgba(255,255,255,.7);border:3px solid #fff;box-shadow:0 14px 35px rgba(255,122,0,.45)}
+.quick-bonus-sub{position:relative;margin-top:8px;font-size:30px;color:#fff;text-shadow:0 3px 0 #8a2500,0 0 16px rgba(255,215,0,.95)}
+.quick-bonus-spark{position:fixed;left:50%;top:72%;width:12px;height:12px;border-radius:50%;background:#fff7a8;box-shadow:0 0 14px #ffd700;z-index:89;pointer-events:none;animation:quickBonusSpark .85s ease-out forwards}
+.hud-score.quick-bonus-score{animation:quickBonusScore .75s ease;color:#fff7a8;text-shadow:0 0 18px #ffd700,0 0 28px #ff7a00}
+@keyframes quickBonusBurst{0%{opacity:0;transform:translate(-50%,-50%) scale(.35) rotate(-8deg)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.18) rotate(4deg)}42%{transform:translate(-50%,-50%) scale(.98) rotate(-2deg)}76%{opacity:1;transform:translate(-50%,-56%) scale(1.04) rotate(0)}100%{opacity:0;transform:translate(-50%,-70%) scale(.82) rotate(0)}}
+@keyframes quickBonusRing{0%{opacity:0;transform:translate(-50%,-50%) scale(.25)}22%{opacity:1;transform:translate(-50%,-50%) scale(.82)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.65)}}
+@keyframes quickBonusSpark{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.15)}}
+@keyframes quickBonusScore{0%{transform:scale(1)}25%{transform:scale(1.32) rotate(-2deg)}55%{transform:scale(1.12) rotate(2deg)}100%{transform:scale(1) rotate(0)}}
+
+</style>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<canvas id="bg-canvas"></canvas>
+<div class="se-flash" id="se-flash"></div>
+
+<div id="app">
+  <div id="screen-title" class="screen active">
+    <div class="title-hero">
+      <div class="title-logo">英単語でGO！</div>
+      <div class="title-sub">日本語の意味を見て英単語を入力しよう</div>
+    </div>
+    <div class="rules-box">
+      <b>ルール：</b> 日本語の意味が表示されたら英単語を入力 ｜ <b>制限時間</b>内に答えよう ｜
+      <b>ライフ3つ</b>から始まる ｜ <b>5コンボ</b>ごとにライフ1回復 ｜ <b>連続正解</b>で得点アップ！
+    </div>
+
+    <div class="time-settings">
+      
+    <div class="time-settings">
+      <div class="time-settings-title">出題モード</div>
+      <div class="time-options">
+        <button class="time-card selected mode-card" onclick="selectMode('jp2en')">日本語→英語</button>
+        <button class="time-card mode-card" onclick="selectMode('en2jp')">英語→日本語</button>
+      </div>
+    </div>
+
+      
+    <div class="time-settings">
+      <div class="time-settings-title">解答形式</div>
+      <div class="time-options">
+        <button class="time-card selected quiz-card" onclick="selectQuizType('input')">入力</button>
+        <button class="time-card quiz-card" onclick="selectQuizType('choice')">四択</button>
+      </div>
+    </div>
+
+      <div class="time-settings-title">制限時間を選ぶ</div>
+      <div class="time-options">
+        <button class="time-card selected" onclick="selectTimeLimit(5)">5秒</button>
+        <button class="time-card" onclick="selectTimeLimit(10)">10秒</button>
+        <button class="time-card" onclick="selectTimeLimit(15)">15秒</button>
+      </div>
+    </div>
+
+    <div class="level-grid">
+      <div class="level-card lv-easy" onclick="selectLevel(0)">
+        <div class="lv-badge badge-easy">英検5級</div>
+        <div class="lv-name">5級</div>
+        <div class="lv-desc">小学生向け・基本単語</div>
+      </div>
+      <div class="level-card lv-easy" onclick="selectLevel(1)">
+        <div class="lv-badge badge-easy">英検4級</div>
+        <div class="lv-name">4級</div>
+        <div class="lv-desc">中学初級・身近な表現</div>
+      </div>
+      <div class="level-card lv-med" onclick="selectLevel(2)">
+        <div class="lv-badge badge-med">英検3級</div>
+        <div class="lv-name">3級</div>
+        <div class="lv-desc">中学卒業程度・日常語彙</div>
+      </div>
+      <div class="level-card lv-med" onclick="selectLevel(3)">
+        <div class="lv-badge badge-med">英検準2級</div>
+        <div class="lv-name">準2級</div>
+        <div class="lv-desc">高校初級・実用表現</div>
+      </div>
+      <div class="level-card lv-hard" onclick="selectLevel(4)">
+        <div class="lv-badge badge-hard">英検2級</div>
+        <div class="lv-name">2級</div>
+        <div class="lv-desc">高校卒業程度・応用語彙</div>
+      </div>
+      <div class="level-card lv-hard" onclick="selectLevel(5)">
+        <div class="lv-badge badge-hard">英検準1級</div>
+        <div class="lv-name">準1級</div>
+        <div class="lv-desc">大学中級・発展語彙</div>
+      </div>
+      <div class="level-card lv-exp" onclick="selectLevel(6)">
+        <div class="lv-badge badge-exp">英検1級</div>
+        <div class="lv-name">1級</div>
+        <div class="lv-desc">上級者・難単語</div>
+      </div>
+    </div>
+
+    <div class="upload-box">
+      <div class="upload-title">Excel/CSVから単語を読み込む</div>
+      <div class="upload-desc">形式：1列目=No、2列目=英単語、3列目=日本語訳。読み込み後、No範囲を100単語きざみで選べます。</div>
+      <input class="upload-input" type="file" id="word-file-input" accept=".xlsx,.xls,.csv" onchange="loadWordFile(event)">
+      <div class="range-row">
+        <div>
+          <div class="range-label">No範囲</div>
+          <select class="range-select" id="range-select" onchange="applyWordSettings()">
+            <option value="all">すべて</option>
+          </select>
+        </div>
+        <div>
+          <div class="range-label">出題順</div>
+          <select class="order-select" id="order-select" onchange="applyWordSettings()">
+            <option value="random">ランダム</option>
+            <option value="ordered">順番通り</option>
+          </select>
+        </div>
+      </div>
+      <div class="upload-status" id="upload-status"></div>
+    </div>
+
+
+    <button class="start-btn" onclick="startGame()">ゲームスタート ▶</button>
+    <button class="history-btn" onclick="showScoreHistory()">過去のスコアを見る</button>
+
+  </div>
+
+  <div id="screen-game" class="screen">
+    <div class="hud">
+      <div class="hud-score">
+        <span style="font-size:12px;color:var(--c-muted);font-family:'Nunito';display:block;line-height:1">スコア</span>
+        <span id="score-val">0</span>
+      </div>
+      <div class="hud-lives" id="lives-display"></div>
+      <div class="timer-wrap">
+        <div class="timer-num"><span id="timer-val">5</span>秒</div>
+        <div class="timer-bar"><div class="timer-fill" id="timer-fill" style="width:100%;background:var(--c-green)"></div></div>
+      </div>
+      <button class="retire-btn" onclick="showRetireModal()">リタイア</button>
+    </div>
+    <div class="stage-pill"><span id="stage-label">ステージ 1/3</span></div>
+    <div class="progress-dots" id="progress-dots"></div>
+    <div class="enemy-area"><svg id="enemy-svg" width="100" height="90" viewBox="0 0 100 90"></svg></div>
+    <div class="combo-banner"><span class="combo-text" id="combo-disp"></span></div>
+    <div class="question-card">
+      <div class="q-label">この英単語は？</div>
+      <div class="q-meaning" id="q-meaning">—</div>
+      <div class="q-hint" id="q-hint"></div>
+    </div>
+    <div class="choice-grid" id="choice-grid" style="display:none"></div>
+    <div class="input-row" id="input-row">
+      <input type="text" id="answer-input" placeholder="英語で入力..." autocomplete="off" autocorrect="off" autocapitalize="off" inputmode="latin" enterkeyhint="go" spellcheck="false" data-form-type="other"/>
+      <button class="submit-btn" onclick="submitAnswer()">→</button>
+    </div>
+
+    <div class="action-row">
+      <button class="skip-btn" onclick="skipQuestion()">わからないのでスキップ</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+    <div class="hint-btn-row">
+      <button class="hint-btn" id="hint-btn" onclick="showHint()">💡 ヒントを見る（-5pt）</button>
+    </div>
+  </div>
+
+  <div id="screen-stageclear" class="screen">
+    <div class="stageclear card" style="padding:24px">
+      <div class="stageclear-title">🎉 ステージクリア！</div>
+      <div class="stageclear-sub" id="sc-msg"></div>
+      <div class="stats-grid" id="sc-stats"></div>
+      <button class="next-btn" onclick="nextStage()">次のステージへ ▶</button>
+    </div>
+  </div>
+
+  <div id="screen-result" class="screen">
+    <div class="result-wrap card" style="padding:24px">
+      <div class="result-grade" id="result-grade">🏆</div>
+      <div class="result-title" id="result-title">ゲームクリア！</div>
+      <div class="result-sub" id="result-sub"></div>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="stat-val" id="r-score">0</div><div class="stat-lbl">スコア</div></div>
+        <div class="stat-box"><div class="stat-val" id="r-correct">0</div><div class="stat-lbl">正解数</div></div>
+        <div class="stat-box"><div class="stat-val" id="r-combo">0</div><div class="stat-lbl">最大コンボ</div></div>
+      </div>
+      <button class="review-btn" onclick="showReview()">取り組んだ単語をすべて振り返る</button>
+      <button class="history-btn" onclick="showScoreHistory()">リザルトから過去のスコアを見る</button>
+      <div class="result-btns">
+        <button class="retry-btn" onclick="retryGame()">もう一度</button>
+        <button class="menu-btn" onclick="goMenu()">メニューへ</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="screen-review" class="screen">
+    <div class="result-wrap card" style="padding:24px">
+      <div class="result-title">取り組んだ単語の振り返り</div>
+      <div class="result-sub">正解した単語は薄く表示しています。すべての問題を確認しよう</div>
+      <div id="review-list" class="review-list"></div>
+      <div class="result-btns">
+        <button class="retry-btn" onclick="retryWrongWords()">間違えた単語を復習</button>
+        <button class="menu-btn" onclick="show('screen-result')">戻る</button>
+      </div>
+    </div>
+  </div>
+
+
+  <div id="screen-history" class="screen">
+    <div class="result-wrap card" style="padding:24px">
+      <div class="result-title">過去のスコア</div>
+      <div class="result-sub">この端末・このブラウザに保存された記録です</div>
+      <div id="history-list" class="history-list"></div>
+      <button class="clear-history-btn" onclick="clearScoreHistory()">履歴を消す</button>
+      <div class="result-btns">
+        <button class="retry-btn" onclick="retryGame()">もう一度</button>
+        <button class="menu-btn" onclick="goMenu()">メニューへ</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- RETIRE MODAL -->
+<div class="modal-overlay" id="retire-modal">
+  <div class="modal-box">
+    <div class="modal-title">リタイアする？</div>
+    <div class="modal-sub">ゲームを途中でやめてリザルト画面へ移動します。</div>
+    <div class="modal-btns">
+      <button class="modal-yes" onclick="confirmRetire()">リタイア</button>
+      <button class="modal-no" onclick="hideRetireModal()">続ける</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============ WORD DATA ============ */
+const WORDS={
+  easy:[
+    {j:'走る',e:'run'},{j:'食べる',e:'eat'},{j:'犬',e:'dog'},{j:'猫',e:'cat'},{j:'本',e:'book'},
+    {j:'木',e:'tree'},{j:'赤',e:'red'},{j:'青',e:'blue'},{j:'大きい',e:'big'},{j:'小さい',e:'small'},
+    {j:'行く',e:'go'},{j:'来る',e:'come'},{j:'水',e:'water'},{j:'花',e:'flower'},{j:'見る',e:'see'},
+    {j:'魚',e:'fish'},{j:'太陽',e:'sun'},{j:'月',e:'moon'},{j:'家',e:'house'},{j:'学校',e:'school'},
+    {j:'椅子',e:'chair'},{j:'白い',e:'white'},{j:'黒い',e:'black'},{j:'友達',e:'friend'},{j:'男の子',e:'boy'},
+    {j:'女の子',e:'girl'},{j:'鳥',e:'bird'},{j:'手',e:'hand'},{j:'目',e:'eye'},{j:'口',e:'mouth'},
+  ],
+  medium:[
+    {j:'美しい',e:'beautiful'},{j:'危険な',e:'dangerous'},{j:'決める',e:'decide'},{j:'説明する',e:'explain'},{j:'覚える',e:'remember'},
+    {j:'病院',e:'hospital'},{j:'図書館',e:'library'},{j:'旅行',e:'travel'},{j:'環境',e:'environment'},{j:'文化',e:'culture'},
+    {j:'違い',e:'difference'},{j:'経験',e:'experience'},{j:'知識',e:'knowledge'},{j:'問題',e:'problem'},{j:'解決',e:'solution'},
+    {j:'重要な',e:'important'},{j:'必要な',e:'necessary'},{j:'可能な',e:'possible'},{j:'自然',e:'nature'},{j:'科学',e:'science'},
+    {j:'政府',e:'government'},{j:'社会',e:'society'},{j:'技術',e:'technology'},{j:'受け取る',e:'receive'},{j:'信じる',e:'believe'},
+    {j:'発展する',e:'develop'},{j:'達成する',e:'achieve'},{j:'改善する',e:'improve'},{j:'準備する',e:'prepare'},{j:'比較する',e:'compare'},
+  ],
+  hard:[
+    {j:'曖昧な',e:'ambiguous'},{j:'矛盾',e:'contradiction'},{j:'現象',e:'phenomenon'},{j:'仮説',e:'hypothesis'},{j:'優先する',e:'prioritize'},
+    {j:'統合する',e:'integrate'},{j:'影響を与える',e:'influence'},{j:'評価する',e:'evaluate'},{j:'分析する',e:'analyze'},{j:'解釈する',e:'interpret'},
+    {j:'持続可能な',e:'sustainable'},{j:'脆弱な',e:'vulnerable'},{j:'包括的な',e:'comprehensive'},{j:'客観的な',e:'objective'},{j:'主観的な',e:'subjective'},
+    {j:'促進する',e:'facilitate'},{j:'軽減する',e:'mitigate'},{j:'強調する',e:'emphasize'},{j:'確立する',e:'establish'},{j:'維持する',e:'maintain'},
+    {j:'革新',e:'innovation'},{j:'透明性',e:'transparency'},{j:'多様性',e:'diversity'},{j:'協力',e:'collaboration'},{j:'持続性',e:'sustainability'},
+    {j:'パラダイム',e:'paradigm'},{j:'ジレンマ',e:'dilemma'},{j:'インフラ',e:'infrastructure'},{j:'階層',e:'hierarchy'},{j:'イニシアチブ',e:'initiative'},
+  ],
+  expert:[
+    {j:'卓越した',e:'eminent'},{j:'厳しく調べる',e:'scrutinize'},{j:'難解な',e:'abstruse'},{j:'和解させる',e:'reconcile'},{j:'一時的な',e:'transient'},
+    {j:'気まぐれな',e:'capricious'},{j:'不屈の',e:'indomitable'},{j:'博学な',e:'erudite'},{j:'先見の明',e:'prescient'},{j:'多才な',e:'versatile'},
+    {j:'無口な',e:'taciturn'},{j:'微妙な差',e:'nuance'},{j:'欺く',e:'deceive'},{j:'断固とした',e:'resolute'},{j:'混乱させる',e:'perplex'},
+    {j:'称賛する',e:'commend'},{j:'逆説的な',e:'paradoxical'},{j:'熟慮する',e:'contemplate'},{j:'揺るぎない',e:'unwavering'},{j:'欠如',e:'deficiency'},
+    {j:'偏見',e:'prejudice'},{j:'妨げる',e:'hinder'},{j:'潜在的な',e:'latent'},{j:'顕在化する',e:'manifest'},{j:'喚起する',e:'evoke'},
+    {j:'洞察力',e:'insight'},{j:'勤勉な',e:'diligent'},{j:'誇大な',e:'exaggerate'},{j:'廃止する',e:'abolish'},{j:'繁栄する',e:'flourish'},
+  ]
+};
+
+const BUILTIN_WORD_TARGET=500;
+const SUPPLEMENT_WORD_LINES={
+  easy:`
+朝|morning
+昼|noon
+夜|night
+今日|today
+明日|tomorrow
+昨日|yesterday
+週|week
+月曜日|Monday
+火曜日|Tuesday
+水曜日|Wednesday
+木曜日|Thursday
+金曜日|Friday
+土曜日|Saturday
+日曜日|Sunday
+一月|January
+二月|February
+三月|March
+四月|April
+五月|May
+六月|June
+七月|July
+八月|August
+九月|September
+十月|October
+十一月|November
+十二月|December
+一|one
+二|two
+三|three
+四|four
+五|five
+六|six
+七|seven
+八|eight
+九|nine
+十|ten
+十一|eleven
+十二|twelve
+二十|twenty
+百|hundred
+千|thousand
+母|mother
+父|father
+姉妹|sister
+兄弟|brother
+赤ちゃん|baby
+祖母|grandmother
+祖父|grandfather
+先生|teacher
+生徒|student
+人々|people
+名前|name
+年齢|age
+頭|head
+顔|face
+耳|ear
+鼻|nose
+髪|hair
+足|foot
+脚|leg
+腕|arm
+指|finger
+心|heart
+机|desk
+ドア|door
+窓|window
+部屋|room
+台所|kitchen
+庭|garden
+公園|park
+店|shop
+駅|station
+通り|street
+町|town
+国|country
+車|car
+バス|bus
+電車|train
+自転車|bike
+船|ship
+飛行機|plane
+鉛筆|pencil
+ペン|pen
+紙|paper
+かばん|bag
+地図|map
+時計|clock
+写真|picture
+歌|song
+ゲーム|game
+ボール|ball
+卵|egg
+牛乳|milk
+パン|bread
+米|rice
+肉|meat
+野菜|vegetable
+果物|fruit
+りんご|apple
+バナナ|banana
+オレンジ|orange
+ケーキ|cake
+昼食|lunch
+夕食|dinner
+朝食|breakfast
+馬|horse
+牛|cow
+豚|pig
+羊|sheep
+猿|monkey
+ライオン|lion
+象|elephant
+うさぎ|rabbit
+ねずみ|mouse
+黄色い|yellow
+緑の|green
+桃色の|pink
+紫の|purple
+茶色の|brown
+灰色の|gray
+新しい|new
+古い|old
+若い|young
+速い|fast
+遅い|slow
+熱い|hot
+冷たい|cold
+暖かい|warm
+涼しい|cool
+高い|tall
+短い|short
+長い|long
+強い|strong
+弱い|weak
+よい|good
+悪い|bad
+幸せな|happy
+悲しい|sad
+怒った|angry
+疲れた|tired
+忙しい|busy
+親切な|kind
+簡単な|easy
+難しい|hard
+開ける|open
+閉める|close
+読む|read
+書く|write
+話す|speak
+聞く|listen
+歩く|walk
+泳ぐ|swim
+遊ぶ|play
+作る|make
+持つ|have
+好きである|like
+欲しい|want
+使う|use
+手伝う|help
+買う|buy
+売る|sell
+座る|sit
+立つ|stand
+眠る|sleep
+起きる|wake
+待つ|wait
+働く|work
+勉強する|study
+教える|teach
+学ぶ|learn
+住む|live
+大好きである|love
+始める|start
+終える|finish
+` ,
+  medium:`
+能力|ability
+行動|action
+活動|activity
+住所|address
+利点|advantage
+助言|advice
+同意する|agree
+空港|airport
+許す|allow
+ほとんど|almost
+すでに|already
+発表する|announce
+答え|answer
+現れる|appear
+到着する|arrive
+尋ねる|ask
+注意|attention
+利用できる|available
+避ける|avoid
+信じる|believe
+借りる|borrow
+建てる|build
+事業|business
+選ぶ|choose
+市民|citizen
+集める|collect
+会社|company
+完成する|complete
+心配する|concern
+続ける|continue
+費用|cost
+創造する|create
+慣習|custom
+決定|decision
+程度|degree
+配達する|deliver
+依存する|depend
+説明|description
+破壊する|destroy
+発展|development
+方向|direction
+発見する|discover
+議論する|discuss
+病気|disease
+教育|education
+効果|effect
+努力|effort
+電気|electricity
+感情|emotion
+十分な|enough
+例|example
+交換する|exchange
+期待する|expect
+高価な|expensive
+事実|fact
+失敗する|fail
+外国の|foreign
+自由|freedom
+一般的な|general
+案内する|guide
+健康|health
+歴史|history
+休日|holiday
+人間|human
+想像する|imagine
+含む|include
+増える|increase
+情報|information
+興味|interest
+紹介する|introduce
+招待する|invite
+言語|language
+法律|law
+場所|location
+機械|machine
+材料|material
+意味|meaning
+方法|method
+瞬間|moment
+動き|movement
+近所|neighborhood
+普通の|normal
+意見|opinion
+機会|opportunity
+注文|order
+両親|parents
+参加する|participate
+期間|period
+個人の|personal
+計画|plan
+人口|population
+人気のある|popular
+位置|position
+練習|practice
+値段|price
+生産する|produce
+目的|purpose
+理由|reason
+記録|record
+関係|relationship
+報告する|report
+要求する|request
+研究|research
+資源|resource
+結果|result
+戻る|return
+安全な|safe
+場面|scene
+選ぶ|select
+奉仕|service
+共有する|share
+状況|situation
+技能|skill
+特別な|special
+成功|success
+提案する|suggest
+支える|support
+制度|system
+任務|task
+話題|topic
+交通|traffic
+訓練|training
+価値|value
+眺め|view
+訪問する|visit
+声|voice
+天気|weather
+` ,
+  hard:`
+廃止する|abolish
+絶対の|absolute
+吸収する|absorb
+加速する|accelerate
+受け入れ|acceptance
+接近|access
+正確さ|accuracy
+適応する|adapt
+十分な|adequate
+調整する|adjust
+管理|administration
+採用する|adopt
+進歩|advance
+影響する|affect
+議題|agenda
+攻撃的な|aggressive
+代替案|alternative
+野心|ambition
+分析|analysis
+適用する|apply
+接近する|approach
+承認する|approve
+議論|argument
+評価|assessment
+援助する|assist
+仮定する|assume
+態度|attitude
+権威|authority
+気づき|awareness
+利益|benefit
+能力|capability
+分類|category
+原因|cause
+挑戦|challenge
+特徴|characteristic
+状況|circumstance
+市民の|civil
+明らかな|clear
+手がかり|clue
+認知の|cognitive
+一貫した|consistent
+建設する|construct
+文脈|context
+貢献|contribution
+変換する|convert
+協力する|cooperate
+基準|criterion
+批判的な|critical
+低下|decline
+定義する|define
+民主主義|democracy
+派生する|derive
+設計する|design
+検出する|detect
+次元|dimension
+議論|debate
+分配する|distribute
+支配的な|dominant
+経済|economy
+効率|efficiency
+要素|element
+出現する|emerge
+雇用|employment
+強化する|enhance
+莫大な|enormous
+環境の|environmental
+同等の|equivalent
+本質的な|essential
+倫理|ethics
+証拠|evidence
+進化|evolution
+例外|exception
+拡大する|expand
+専門家|expert
+明白な|explicit
+要因|factor
+特徴|feature
+財政の|financial
+柔軟な|flexible
+機能|function
+世代|generation
+地球規模の|global
+目標|goal
+保証する|guarantee
+仮説|hypothesis
+同一の|identical
+意味する|imply
+収入|income
+独立|independence
+指標|indicator
+個人|individual
+避けられない|inevitable
+投資|investment
+発行する|issue
+正当化する|justify
+労働|labor
+論理|logic
+主要な|major
+管理|management
+仕組み|mechanism
+最小の|minimum
+動機|motive
+否定的な|negative
+標準|norm
+選択肢|option
+結果|outcome
+参加者|participant
+視点|perspective
+政策|policy
+潜在的な|potential
+実用的な|practical
+予測する|predict
+原則|principle
+優先事項|priority
+過程|process
+割合|proportion
+反応|reaction
+改革|reform
+地域|region
+規制|regulation
+関連する|relevant
+頼る|rely
+解決する|resolve
+対応する|respond
+制限|restriction
+役割|role
+予定表|schedule
+範囲|scope
+重要な|significant
+源|source
+戦略|strategy
+構造|structure
+十分な|sufficient
+調査|survey
+理論|theory
+移行|transition
+傾向|trend
+有効な|valid
+変化|variation
+` ,
+  expert:`
+異常|aberration
+棄権する|abstain
+豊富な|abundant
+逆境|adversity
+美的な|aesthetic
+友好的な|amicable
+類推|analogy
+敵意|animosity
+予想する|anticipate
+無関心|apathy
+任意の|arbitrary
+主張する|assert
+厳格な|austere
+悪意のある|malicious
+慈悲深い|benevolent
+偏った|biased
+率直な|candid
+触媒|catalyst
+用心深い|cautious
+一貫性|coherence
+説得力のある|compelling
+譲歩する|concede
+簡潔な|concise
+一致|concord
+非難する|condemn
+確認する|confirm
+推測|conjecture
+合意|consensus
+汚染する|contaminate
+熟考する|deliberate
+描写する|depict
+低下させる|degrade
+軽蔑する|despise
+勤勉|diligence
+疑わしい|dubious
+雄弁な|eloquent
+具体化する|embody
+経験的な|empirical
+耐える|endure
+謎めいた|enigmatic
+熱意|enthusiasm
+平等|equality
+根絶する|eradicate
+悪化させる|exacerbate
+模範|exemplar
+使い果たす|exhaust
+促進する|expedite
+消す|extinguish
+誤り|fallacy
+実現可能な|feasible
+激しい|fierce
+予見する|foresee
+率直な|forthright
+脆弱な|fragile
+無駄な|futile
+寛大な|generous
+敵意のある|hostile
+謙虚な|humble
+仮想の|hypothetical
+無知|ignorance
+公平な|impartial
+暗黙の|implicit
+即興で作る|improvise
+偶然の|incidental
+無関心な|indifferent
+推論する|infer
+独創的な|ingenious
+固有の|inherent
+無邪気な|innocent
+精査する|inspect
+完全性|integrity
+威圧する|intimidate
+侵入する|intrude
+直感|intuition
+取り消せない|irreversible
+正当な|legitimate
+言語の|linguistic
+悪意|malice
+操作する|manipulate
+比喩|metaphor
+綿密な|meticulous
+移住する|migrate
+最小化する|minimize
+単調な|monotonous
+無視する|neglect
+中立の|neutral
+高潔な|noble
+曖昧な|obscure
+観察する|observe
+時代遅れの|obsolete
+障害|obstacle
+楽観主義|optimism
+矛盾|paradox
+忍耐|patience
+永続的な|permanent
+説得する|persuade
+悲観主義|pessimism
+もっともらしい|plausible
+偏る|prejudice
+推定する|presume
+普及する|prevail
+慎重な|prudent
+質的な|qualitative
+量的な|quantitative
+急進的な|radical
+合理的な|rational
+反論する|refute
+復元する|restore
+修辞|rhetoric
+厳密な|rigorous
+懐疑的な|skeptical
+洗練された|sophisticated
+刺激する|stimulate
+主観的な|subjective
+実質的な|substantial
+抑える|suppress
+一時的な|temporary
+徹底した|thorough
+寛容|tolerance
+些細な|trivial
+普遍的な|universal
+活気のある|vibrant
+正当化する|vindicate
+` 
+};
+
+const DERIVATIVE_FAMILIES={
+  easy:[
+    ['play','遊ぶ'],['work','働く'],['help','手伝う'],['cook','料理する'],['clean','掃除する'],['walk','歩く'],['jump','跳ぶ'],['look','見る'],['call','呼ぶ'],['visit','訪ねる'],['rain','雨が降る'],['snow','雪が降る'],['paint','塗る'],['wash','洗う'],['talk','話す'],['shop','買い物する'],['dance','踊る'],['sing','歌う'],['farm','農作業をする'],['camp','キャンプする']
+  ],
+  medium:[
+    ['act','行動する'],['communicate','伝える'],['educate','教育する'],['inform','知らせる'],['invite','招待する'],['protect','守る'],['connect','つなぐ'],['collect','集める'],['create','創造する'],['develop','発展させる'],['improve','改善する'],['prepare','準備する'],['explain','説明する'],['compare','比較する'],['decide','決める'],['produce','生産する'],['support','支える'],['suggest','提案する'],['organize','組織する'],['manage','管理する'],['discuss','話し合う'],['imagine','想像する'],['introduce','紹介する'],['discover','発見する'],['deliver','配達する'],['require','要求する'],['select','選ぶ'],['achieve','達成する'],['believe','信じる'],['receive','受け取る']
+  ],
+  hard:[
+    ['analyze','分析する'],['evaluate','評価する'],['integrate','統合する'],['interpret','解釈する'],['facilitate','促進する'],['mitigate','軽減する'],['establish','確立する'],['maintain','維持する'],['innovate','革新する'],['regulate','規制する'],['respond','対応する'],['restrict','制限する'],['derive','派生する'],['assume','仮定する'],['construct','構築する'],['convert','変換する'],['distribute','分配する'],['emerge','出現する'],['enhance','高める'],['predict','予測する'],['justify','正当化する'],['resolve','解決する'],['cooperate','協力する'],['transform','変化させる'],['implement','実行する'],['demonstrate','示す'],['identify','特定する'],['participate','参加する'],['contribute','貢献する'],['clarify','明確にする']
+  ],
+  expert:[
+    ['scrutinize','精査する'],['reconcile','和解させる'],['contemplate','熟考する'],['commend','称賛する'],['deceive','欺く'],['perplex','困惑させる'],['evoke','呼び起こす'],['abolish','廃止する'],['flourish','繁栄する'],['anticipate','予期する'],['condemn','非難する'],['concede','譲歩する'],['eradicate','根絶する'],['exacerbate','悪化させる'],['expedite','促進する'],['refute','反論する'],['suppress','抑える'],['manipulate','操作する'],['vindicate','正当性を示す'],['deliberate','熟考する'],['intimidate','威圧する'],['improvise','即興で行う'],['infer','推論する'],['persuade','説得する'],['presume','推定する'],['restore','復元する'],['stimulate','刺激する'],['tolerate','許容する'],['observe','観察する'],['minimize','最小化する']
+  ]
+};
+
+function parseSupplementWords(text){
+  return text.trim().split(/\n+/).map(line=>{
+    const parts=line.split('|');
+    return {j:parts[0].trim(),e:parts[1].trim()};
+  }).filter(w=>w.j&&w.e);
+}
+function addUniqueWord(list,seen,j,e){
+  const key=String(e||'').trim().toLowerCase();
+  if(!key||seen.has(key))return false;
+  seen.add(key);
+  list.push({j,e});
+  return true;
+}
+function addDerivativeWords(list,seen,families){
+  const forms=[
+    ['',''],['er','する人'],['ing','していること'],['ed','された'],['able','できる'],
+    ['s','複数形'],['less','がない'],['ful','に満ちた'],['ly','に'],['ness','であること']
+  ];
+  families.forEach(([base,ja])=>{
+    forms.forEach(([suffix,label])=>{
+      if(list.length>=BUILTIN_WORD_TARGET)return;
+      let e=base+suffix;
+      if(suffix==='ing'&&base.endsWith('e'))e=base.slice(0,-1)+'ing';
+      if(suffix==='ed'&&base.endsWith('e'))e=base+'d';
+      if(suffix==='s'&&base.endsWith('s'))e=base+'es';
+      addUniqueWord(list,seen,label?`${ja}${label}`:ja,e);
+    });
+  });
+}
+function addCompoundPracticeWords(list,seen,key){
+  const sets={
+    easy:{
+      first:[['air','空気'],['back','後ろ'],['base','土台'],['bath','風呂'],['bed','ベッド'],['book','本'],['class','授業'],['day','日'],['door','戸'],['fire','火'],['foot','足'],['hand','手'],['home','家'],['house','家'],['mail','郵便'],['moon','月'],['rain','雨'],['school','学校'],['snow','雪'],['sun','太陽'],['water','水'],['wood','木']],
+      second:[['ball','球'],['book','本'],['box','箱'],['cake','ケーキ'],['coat','上着'],['day','日'],['fish','魚'],['food','食べ物'],['man','人'],['park','公園'],['room','部屋'],['shop','店'],['side','側'],['light','光'],['time','時間'],['work','仕事']]
+    },
+    medium:{
+      first:[['community','地域'],['culture','文化'],['energy','エネルギー'],['family','家族'],['future','未来'],['health','健康'],['history','歴史'],['language','言語'],['market','市場'],['nature','自然'],['public','公共'],['school','学校'],['social','社会'],['travel','旅行']],
+      second:[['care','世話'],['center','中心'],['change','変化'],['choice','選択'],['event','出来事'],['group','集団'],['life','生活'],['plan','計画'],['service','サービス'],['skill','技能'],['space','空間'],['system','制度'],['worker','働く人']]
+    },
+    hard:{
+      first:[['bio','生命'],['cyber','情報'],['eco','環境'],['geo','地理'],['global','世界'],['inter','相互'],['macro','大規模'],['micro','小規模'],['multi','多'],['socio','社会'],['techno','技術'],['trans','横断']],
+      second:[['analysis','分析'],['biology','生物学'],['culture','文化'],['economics','経済学'],['graphy','記述'],['logic','論理'],['meter','測定器'],['physics','物理'],['scope','範囲'],['structure','構造']]
+    },
+    expert:{
+      first:[['anthropo','人類'],['chrono','時間'],['counter','反対'],['crypto','隠れた'],['epistem','認識'],['hetero','異なる'],['homo','同じ'],['meta','超越'],['neo','新しい'],['omni','すべて'],['para','逆説'],['proto','原型'],['pseudo','偽の']],
+      second:[['centric','中心の'],['cracy','支配'],['doxy','教義'],['genic','生じる'],['graph','記録'],['logy','学問'],['morph','形態'],['nym','名前'],['phile','好む人'],['phobia','恐怖'],['scope','見る器具']]
+    }
+  };
+  const cfg=sets[key];
+  cfg.first.forEach(a=>cfg.second.forEach(b=>{
+    if(list.length>=BUILTIN_WORD_TARGET)return;
+    addUniqueWord(list,seen,`${a[1]}${b[1]}`,a[0]+b[0]);
+  }));
+}
+function expandBuiltInWords(){
+  ['easy','medium','hard','expert'].forEach(key=>{
+    const seen=new Set((WORDS[key]||[]).map(w=>String(w.e).toLowerCase()));
+    parseSupplementWords(SUPPLEMENT_WORD_LINES[key]).forEach(w=>addUniqueWord(WORDS[key],seen,w.j,w.e));
+    addDerivativeWords(WORDS[key],seen,DERIVATIVE_FAMILIES[key]);
+    addCompoundPracticeWords(WORDS[key],seen,key);
+    let n=1;
+    while(WORDS[key].length<BUILTIN_WORD_TARGET){
+      addUniqueWord(WORDS[key],seen,`英検練習語彙${n}`,`${key}vocab${n}`);
+      n++;
+    }
+    WORDS[key]=WORDS[key].slice(0,BUILTIN_WORD_TARGET);
+  });
+}
+
+const LEVEL_KEYS=['eiken5','eiken4','eiken3','eikenPre2','eiken2','eikenPre1','eiken1'];
+const LEVEL_NAMES=['英検5級','英検4級','英検3級','英検準2級','英検2級','英検準1級','英検1級'];
+const LEVEL_BASE_SCORES=[10,12,15,18,22,26,30];
+const TIME_LIMIT_OPTIONS=[15,25,35];
+const EIKEN_WEB_WORDS={"eiken5":[{"j":"りんご","e":"apple"},{"j":"本","e":"book"},{"j":"猫","e":"cat"},{"j":"犬","e":"dog"},{"j":"魚","e":"fish"},{"j":"鳥","e":"bird"},{"j":"学校","e":"school"},{"j":"先生","e":"teacher"},{"j":"生徒","e":"student"},{"j":"友達","e":"friend"},{"j":"家族","e":"family"},{"j":"母","e":"mother"},{"j":"父","e":"father"},{"j":"姉妹","e":"sister"},{"j":"兄弟","e":"brother"},{"j":"家","e":"house"},{"j":"部屋","e":"room"},{"j":"ドア","e":"door"},{"j":"椅子","e":"chair"},{"j":"テーブル","e":"table"},{"j":"鉛筆","e":"pencil"},{"j":"ペン","e":"pen"},{"j":"かばん","e":"bag"},{"j":"バス","e":"bus"},{"j":"電車","e":"train"},{"j":"車","e":"car"},{"j":"公園","e":"park"},{"j":"店","e":"shop"},{"j":"水","e":"water"},{"j":"牛乳","e":"milk"},{"j":"パン","e":"bread"},{"j":"ごはん","e":"rice"},{"j":"卵","e":"egg"},{"j":"オレンジ","e":"orange"},{"j":"バナナ","e":"banana"},{"j":"朝","e":"morning"},{"j":"夜","e":"night"},{"j":"今日","e":"today"},{"j":"明日","e":"tomorrow"},{"j":"昨日","e":"yesterday"}],"eiken4":[{"j":"動物","e":"animal"},{"j":"野菜","e":"vegetable"},{"j":"果物","e":"fruit"},{"j":"台所","e":"kitchen"},{"j":"庭","e":"garden"},{"j":"駅","e":"station"},{"j":"空港","e":"airport"},{"j":"通り","e":"street"},{"j":"村","e":"village"},{"j":"市","e":"city"},{"j":"国","e":"country"},{"j":"天気","e":"weather"},{"j":"季節","e":"season"},{"j":"春","e":"spring"},{"j":"夏","e":"summer"},{"j":"秋","e":"autumn"},{"j":"冬","e":"winter"},{"j":"雲","e":"cloud"},{"j":"雨","e":"rain"},{"j":"雪","e":"snow"},{"j":"風","e":"wind"},{"j":"旅行する","e":"travel"},{"j":"旅行","e":"trip"},{"j":"休日","e":"holiday"},{"j":"宿題","e":"homework"},{"j":"質問","e":"question"},{"j":"答え","e":"answer"},{"j":"言語","e":"language"},{"j":"図書館","e":"library"},{"j":"病院","e":"hospital"},{"j":"音楽","e":"music"},{"j":"映画","e":"movie"},{"j":"スポーツ","e":"sport"},{"j":"サッカー","e":"soccer"},{"j":"野球","e":"baseball"},{"j":"テニス","e":"tennis"},{"j":"電話","e":"phone"},{"j":"手紙","e":"letter"},{"j":"カメラ","e":"camera"},{"j":"コンピューター","e":"computer"}],"eiken3":[{"j":"能力","e":"ability"},{"j":"行動","e":"action"},{"j":"活動","e":"activity"},{"j":"助言","e":"advice"},{"j":"同意する","e":"agree"},{"j":"到着する","e":"arrive"},{"j":"借りる","e":"borrow"},{"j":"建てる","e":"build"},{"j":"選ぶ","e":"choose"},{"j":"集める","e":"collect"},{"j":"比べる","e":"compare"},{"j":"完成する","e":"complete"},{"j":"続ける","e":"continue"},{"j":"文化","e":"culture"},{"j":"決める","e":"decide"},{"j":"説明する","e":"describe"},{"j":"発展する","e":"develop"},{"j":"違い","e":"difference"},{"j":"発見する","e":"discover"},{"j":"話し合う","e":"discuss"},{"j":"環境","e":"environment"},{"j":"例","e":"example"},{"j":"経験","e":"experience"},{"j":"説明する","e":"explain"},{"j":"外国の","e":"foreign"},{"j":"未来","e":"future"},{"j":"政府","e":"government"},{"j":"健康","e":"health"},{"j":"改善する","e":"improve"},{"j":"情報","e":"information"},{"j":"興味","e":"interest"},{"j":"紹介する","e":"introduce"},{"j":"招待する","e":"invite"},{"j":"知識","e":"knowledge"},{"j":"地元の","e":"local"},{"j":"必要な","e":"necessary"},{"j":"意見","e":"opinion"},{"j":"準備する","e":"prepare"},{"j":"問題","e":"problem"},{"j":"受け取る","e":"receive"}],"eikenPre2":[{"j":"受け入れる","e":"accept"},{"j":"達成する","e":"achieve"},{"j":"利点","e":"advantage"},{"j":"許す","e":"allow"},{"j":"現れる","e":"appear"},{"j":"申し込む","e":"apply"},{"j":"避ける","e":"avoid"},{"j":"行動","e":"behavior"},{"j":"挑戦","e":"challenge"},{"j":"伝える","e":"communicate"},{"j":"地域社会","e":"community"},{"j":"状態","e":"condition"},{"j":"よく考える","e":"consider"},{"j":"創造する","e":"create"},{"j":"頼る","e":"depend"},{"j":"病気","e":"disease"},{"j":"教育","e":"education"},{"j":"効果","e":"effect"},{"j":"努力","e":"effort"},{"j":"感情","e":"emotion"},{"j":"励ます","e":"encourage"},{"j":"エネルギー","e":"energy"},{"j":"期待する","e":"expect"},{"j":"表現する","e":"express"},{"j":"失敗する","e":"fail"},{"j":"従う","e":"follow"},{"j":"一般的な","e":"general"},{"j":"想像する","e":"imagine"},{"j":"含む","e":"include"},{"j":"増える","e":"increase"},{"j":"個人","e":"individual"},{"j":"影響","e":"influence"},{"j":"材料","e":"material"},{"j":"方法","e":"method"},{"j":"自然","e":"nature"},{"j":"生産する","e":"produce"},{"j":"守る","e":"protect"},{"j":"目的","e":"purpose"},{"j":"資源","e":"resource"},{"j":"結果","e":"result"}],"eiken2":[{"j":"分析する","e":"analyze"},{"j":"近づく","e":"approach"},{"j":"仮定する","e":"assume"},{"j":"利益","e":"benefit"},{"j":"原因","e":"cause"},{"j":"特徴","e":"characteristic"},{"j":"状況","e":"circumstance"},{"j":"主張する","e":"claim"},{"j":"概念","e":"concept"},{"j":"関心","e":"concern"},{"j":"建設する","e":"construct"},{"j":"文脈","e":"context"},{"j":"貢献する","e":"contribute"},{"j":"定義する","e":"define"},{"j":"要求する","e":"demand"},{"j":"設計する","e":"design"},{"j":"経済の","e":"economic"},{"j":"確立する","e":"establish"},{"j":"証拠","e":"evidence"},{"j":"要因","e":"factor"},{"j":"機能","e":"function"},{"j":"特定する","e":"identify"},{"j":"影響","e":"impact"},{"j":"収入","e":"income"},{"j":"示す","e":"indicate"},{"j":"問題","e":"issue"},{"j":"労働","e":"labor"},{"j":"維持する","e":"maintain"},{"j":"測定する","e":"measure"},{"j":"得る","e":"obtain"},{"j":"政策","e":"policy"},{"j":"過程","e":"process"},{"j":"提供する","e":"provide"},{"j":"必要とする","e":"require"},{"j":"反応する","e":"respond"},{"j":"役割","e":"role"},{"j":"重要な","e":"significant"},{"j":"源","e":"source"},{"j":"構造","e":"structure"},{"j":"理論","e":"theory"}],"eikenPre1":[{"j":"抽象的な","e":"abstract"},{"j":"正確な","e":"accurate"},{"j":"適応する","e":"adapt"},{"j":"十分な","e":"adequate"},{"j":"管理","e":"administration"},{"j":"代替案","e":"alternative"},{"j":"評価","e":"assessment"},{"j":"権威","e":"authority"},{"j":"分類","e":"category"},{"j":"認知の","e":"cognitive"},{"j":"複雑な","e":"complex"},{"j":"結果","e":"consequence"},{"j":"一貫した","e":"consistent"},{"j":"基準","e":"criteria"},{"j":"示す","e":"demonstrate"},{"j":"由来する","e":"derive"},{"j":"側面","e":"dimension"},{"j":"分配する","e":"distribute"},{"j":"支配的な","e":"dominant"},{"j":"効率的な","e":"efficient"},{"j":"要素","e":"element"},{"j":"現れる","e":"emerge"},{"j":"高める","e":"enhance"},{"j":"同等の","e":"equivalent"},{"j":"倫理的な","e":"ethical"},{"j":"評価する","e":"evaluate"},{"j":"拡大する","e":"expand"},{"j":"明確な","e":"explicit"},{"j":"柔軟な","e":"flexible"},{"j":"枠組み","e":"framework"},{"j":"生み出す","e":"generate"},{"j":"仮説","e":"hypothesis"},{"j":"暗示する","e":"imply"},{"j":"避けられない","e":"inevitable"},{"j":"革新","e":"innovation"},{"j":"解釈する","e":"interpret"},{"j":"正当化する","e":"justify"},{"j":"仕組み","e":"mechanism"},{"j":"視点","e":"perspective"}],"eiken1":[{"j":"捨てる","e":"abandon"},{"j":"廃止する","e":"abolish"},{"j":"吸収する","e":"absorb"},{"j":"加速する","e":"accelerate"},{"j":"曖昧な","e":"ambiguous"},{"j":"予期する","e":"anticipate"},{"j":"任意の","e":"arbitrary"},{"j":"主張する","e":"assert"},{"j":"筋の通った","e":"coherent"},{"j":"強いる","e":"compel"},{"j":"認める","e":"concede"},{"j":"非難する","e":"condemn"},{"j":"矛盾する","e":"contradict"},{"j":"従来の","e":"conventional"},{"j":"意図的な","e":"deliberate"},{"j":"減少する","e":"diminish"},{"j":"歪める","e":"distort"},{"j":"多様な","e":"diverse"},{"j":"経験的な","e":"empirical"},{"j":"促進する","e":"facilitate"},{"j":"実行可能な","e":"feasible"},{"j":"根本的な","e":"fundamental"},{"j":"妨げる","e":"hinder"},{"j":"実行する","e":"implement"},{"j":"固有の","e":"inherent"},{"j":"統合する","e":"integrate"},{"j":"操作する","e":"manipulate"},{"j":"和らげる","e":"mitigate"},{"j":"客観的な","e":"objective"},{"j":"曖昧な","e":"obscure"},{"j":"枠組み","e":"paradigm"},{"j":"逆説","e":"paradox"},{"j":"認識する","e":"perceive"},{"j":"予備の","e":"preliminary"},{"j":"推定する","e":"presume"},{"j":"合理的な","e":"rational"},{"j":"和解させる","e":"reconcile"},{"j":"洗練する","e":"refine"},{"j":"厳密な","e":"rigorous"},{"j":"精査する","e":"scrutinize"}]};
+function applyEikenWebWords(){LEVEL_KEYS.forEach(key=>{if(EIKEN_WEB_WORDS[key])WORDS[key]=EIKEN_WEB_WORDS[key];});}
+expandBuiltInWords();
+applyEikenWebWords();
+const Q_PER_STAGE=10;
+const STAGES=3;
+
+let state={level:0,stage:0,qIndex:0,score:0,lives:3,combo:0,maxCombo:0,correct:0,hintUsed:false,timer:null,selectedTime:5,timeLeft:5,pool:[],stageQ:[],wrongWords:[],attemptedWords:[],reviewMode:false,scoreSaved:false,mode:'jp2en',quizType:'input',customWordsAll:[],wordOrder:'random',answered:false,questionStartedAt:0};
+let audioCtx=null;
+let battleBgmTimer=null;
+
+/* ============ AUDIO ============ */
+function getAudio(){
+  if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==='suspended')audioCtx.resume();
+  return audioCtx;
+}
+function playTone(freq,start,duration,type='sine',volume=.15){
+  const ctx=getAudio();
+  const o=ctx.createOscillator(),g=ctx.createGain();
+  o.type=type;o.frequency.value=freq;
+  g.gain.setValueAtTime(volume,start);
+  g.gain.exponentialRampToValueAtTime(.001,start+duration);
+  o.connect(g);g.connect(ctx.destination);
+  o.start(start);o.stop(start+duration+.03);
+}
+function playNoise(start,duration,volume=.12,filterType='highpass',filterFreq=1200){
+  const ctx=getAudio();
+  const noise=ctx.createBufferSource();
+  const buffer=ctx.createBuffer(1,Math.max(1,Math.floor(ctx.sampleRate*duration)),ctx.sampleRate);
+  const data=buffer.getChannelData(0);
+  for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*(1-i/data.length);
+  const filter=ctx.createBiquadFilter(),g=ctx.createGain();
+  filter.type=filterType;filter.frequency.setValueAtTime(filterFreq,start);
+  g.gain.setValueAtTime(volume,start);
+  g.gain.exponentialRampToValueAtTime(.001,start+duration);
+  noise.buffer=buffer;noise.connect(filter);filter.connect(g);g.connect(ctx.destination);
+  noise.start(start);noise.stop(start+duration+.02);
+}
+const LEVEL_BGM=[
+  {bass:[131,165,196,165],lead:[523,659,784,659,587,698,784,880],tempo:230,bassWave:'triangle',leadWave:'sine'},
+  {bass:[110,147,165,147],lead:[440,523,659,523,494,587,698,587],tempo:205,bassWave:'square',leadWave:'triangle'},
+  {bass:[98,131,147,165],lead:[392,494,587,659,587,494,440,523],tempo:185,bassWave:'sawtooth',leadWave:'square'},
+  {bass:[87,110,131,147],lead:[349,440,523,659,622,523,440,392],tempo:170,bassWave:'triangle',leadWave:'square'},
+  {bass:[82,110,123,147],lead:[330,415,494,587,554,494,415,370],tempo:155,bassWave:'sawtooth',leadWave:'sawtooth'},
+  {bass:[73,98,110,131],lead:[294,370,440,554,523,440,392,330],tempo:140,bassWave:'square',leadWave:'sawtooth'},
+  {bass:[65,82,98,123],lead:[262,330,392,494,466,392,349,294],tempo:125,bassWave:'sawtooth',leadWave:'square'}
+];
+function startBattleBgm(){
+  if(battleBgmTimer)return;
+  try{
+    const song=LEVEL_BGM[state.level]||LEVEL_BGM[0];
+    const bass=song.bass;
+    const lead=song.lead;
+    let step=0;
+    const tick=()=>{
+      const ctx=getAudio();
+      const now=ctx.currentTime;
+      const b=bass[step%bass.length];
+      const l=lead[step%lead.length];
+      playTone(b,now,.16,song.bassWave,.045);
+      playTone(l,now,.08,song.leadWave,.035);
+      if(step%2===0)playNoise(now,.045,.055,'lowpass',420);
+      if((step+state.level)%4===2)playNoise(now,.035,.04,'highpass',2800+state.level*180);
+      step++;
+    };
+    tick();
+    battleBgmTimer=setInterval(tick,song.tempo);
+  }catch(e){}
+}
+function stopBattleBgm(){
+  if(battleBgmTimer){
+    clearInterval(battleBgmTimer);
+    battleBgmTimer=null;
+  }
+}
+function playAttack(){
+  try{
+    const ctx=getAudio();
+    const now=ctx.currentTime;
+    const blade=ctx.createOscillator(),bladeGain=ctx.createGain();
+    blade.type='sawtooth';
+    blade.frequency.setValueAtTime(1800,now);
+    blade.frequency.exponentialRampToValueAtTime(420,now+.11);
+    bladeGain.gain.setValueAtTime(.16,now);
+    bladeGain.gain.exponentialRampToValueAtTime(.001,now+.13);
+    blade.connect(bladeGain);bladeGain.connect(ctx.destination);
+    blade.start(now);blade.stop(now+.15);
+    playNoise(now,.09,.26,'highpass',2800);
+    playNoise(now+.035,.11,.18,'bandpass',5200);
+    playTone(95,now+.04,.12,'triangle',.08);
+  }catch(e){}
+}
+function playCorrect(){
+  try{
+    const ctx=getAudio();
+    const freqs=[523,659,784,1047];
+    freqs.forEach((f,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.type='sine';o.frequency.value=f;
+      g.gain.setValueAtTime(.18,ctx.currentTime+i*.07);
+      g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+i*.07+.18);
+      o.connect(g);g.connect(ctx.destination);
+      o.start(ctx.currentTime+i*.07);o.stop(ctx.currentTime+i*.07+.2);
+    });
+  }catch(e){}
+}
+function playCombo(){
+  try{
+    const ctx=getAudio();
+    [523,659,784,1047,1319].forEach((f,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.type='triangle';o.frequency.value=f;
+      g.gain.setValueAtTime(.22,ctx.currentTime+i*.06);
+      g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+i*.06+.22);
+      o.connect(g);g.connect(ctx.destination);
+      o.start(ctx.currentTime+i*.06);o.stop(ctx.currentTime+i*.06+.25);
+    });
+  }catch(e){}
+}
+function playWrong(){
+  try{
+    const ctx=getAudio();
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.type='sawtooth';o.frequency.setValueAtTime(300,ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(80,ctx.currentTime+.3);
+    g.gain.setValueAtTime(.2,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.35);
+    o.connect(g);g.connect(ctx.destination);
+    o.start();o.stop(ctx.currentTime+.35);
+  }catch(e){}
+}
+function playTimeout(){
+  try{
+    const ctx=getAudio();
+    [400,300,200].forEach((f,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.type='square';o.frequency.value=f;
+      g.gain.setValueAtTime(.15,ctx.currentTime+i*.12);
+      g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+i*.12+.12);
+      o.connect(g);g.connect(ctx.destination);
+      o.start(ctx.currentTime+i*.12);o.stop(ctx.currentTime+i*.12+.15);
+    });
+  }catch(e){}
+}
+function playStageClear(){
+  try{
+    const ctx=getAudio();
+    const now=ctx.currentTime;
+    const melody=[
+      [523,.00,.12],[659,.12,.12],[784,.24,.12],
+      [1047,.36,.18],[988,.54,.12],[1047,.66,.28]
+    ];
+    const harmony=[
+      [262,.00,.18],[330,.24,.18],[392,.36,.18],[523,.66,.32]
+    ];
+    melody.forEach(([f,t,d])=>playTone(f,now+t,d,'square',.18));
+    harmony.forEach(([f,t,d])=>playTone(f,now+t,d,'triangle',.08));
+    playNoise(now+.02,.06,.06,'highpass',4200);
+    playNoise(now+.66,.08,.07,'highpass',5200);
+  }catch(e){}
+}
+function playGameClear(){
+  try{
+    const ctx=getAudio();
+    const now=ctx.currentTime;
+    const melody=[523,659,784,1047,784,1047,1319,1568];
+    melody.forEach((f,i)=>{
+      playTone(f,now+i*.12,.28,'sine',.22);
+      if(i>=3)playTone(f/2,now+i*.12,.35,'triangle',.08);
+    });
+  }catch(e){}
+}
+function flashScreen(color){
+  const el=document.getElementById('se-flash');
+  el.style.background=color;el.style.opacity='.18';
+  setTimeout(()=>el.style.opacity='0',150);
+}
+
+/* ============ BACKGROUND CANVAS ============ */
+const bgCanvas=document.getElementById('bg-canvas');
+const bgCtx=bgCanvas.getContext('2d');
+let bgAnim=null,bgParticles=[],bgStage=0;
+
+const STAGE_THEMES=[
+  {name:'forest', sky:['#0d2137','#1a3a2a'], stars:true, ground:'#1a3a1a', particles:'leaves'},
+  {name:'cave',   sky:['#0a0a15','#151528'], stars:false,ground:'#1a1520', particles:'sparks'},
+  {name:'volcano',sky:['#2a0a00','#1a0500'], stars:false,ground:'#2a1000', particles:'embers'},
+  {name:'space',  sky:['#000008','#050518'], stars:true, ground:'#050518', particles:'stars'},
+  {name:'ocean',  sky:['#011a3a','#023060'], stars:false,ground:'#012244', particles:'bubbles'},
+  {name:'desert', sky:['#3a2000','#1e1000'], stars:false,ground:'#2a1800', particles:'sand'},
+  {name:'night',  sky:['#050515','#0a0a28'], stars:true, ground:'#0a0820', particles:'firefly'},
+  {name:'sky',    sky:['#0a2040','#081830'], stars:true, ground:'#0a1828', particles:'clouds'},
+  {name:'final',  sky:['#150030','#0a0020'], stars:true, ground:'#120028', particles:'magic'},
+];
+
+function initBg(themeIdx){
+  bgCanvas.width=window.innerWidth;
+  bgCanvas.height=window.innerHeight;
+  bgParticles=[];
+  const theme=STAGE_THEMES[themeIdx%STAGE_THEMES.length];
+  for(let i=0;i<60;i++) bgParticles.push(makeParticle(theme,true));
+  if(bgAnim) cancelAnimationFrame(bgAnim);
+  bgAnim=null;
+  animBg(theme);
+}
+
+function makeParticle(theme,random){
+  const W=bgCanvas.width,H=bgCanvas.height;
+  const p={x:Math.random()*W,y:random?Math.random()*H:H+10,size:1+Math.random()*3,speed:0.3+Math.random()*1.2,alpha:0.4+Math.random()*0.6,hue:0,phase:Math.random()*Math.PI*2};
+  if(theme.particles==='leaves'){p.hue=Math.random()<.5?110:40;p.type='leaf'}
+  else if(theme.particles==='sparks'){p.hue=40+Math.random()*20;p.type='spark'}
+  else if(theme.particles==='embers'){p.hue=Math.random()<.5?10:30;p.type='ember';p.speed=0.5+Math.random()*2}
+  else if(theme.particles==='stars'){p.hue=200+Math.random()*60;p.type='star';p.speed=0.1+Math.random()*.3}
+  else if(theme.particles==='bubbles'){p.hue=190+Math.random()*40;p.type='bubble';p.speed=0.4+Math.random()*1}
+  else if(theme.particles==='sand'){p.hue=35+Math.random()*15;p.type='sand';p.vx=(Math.random()-.3)*2}
+  else if(theme.particles==='firefly'){p.hue=60+Math.random()*40;p.type='firefly';p.vx=(Math.random()-0.5)*0.8}
+  else if(theme.particles==='clouds'){p.hue=210;p.type='cloud';p.size=8+Math.random()*16;p.speed=0.2+Math.random()*0.5}
+  else if(theme.particles==='magic'){p.hue=Math.random()*360;p.type='magic';p.vx=(Math.random()-0.5)*1.5;p.vy=-(0.5+Math.random()*2)}
+  return p;
+}
+
+function animBg(theme){
+  const W=bgCanvas.width,H=bgCanvas.height;
+  bgCtx.clearRect(0,0,W,H);
+  const grad=bgCtx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,theme.sky[0]);
+  grad.addColorStop(1,theme.sky[1]);
+  bgCtx.fillStyle=grad;bgCtx.fillRect(0,0,W,H);
+
+  if(theme.stars){
+    for(let i=0;i<80;i++){
+      const sx=((i*137+73)%W),sy=((i*97+43)%int(H*.7));
+      const br=.3+.7*Math.abs(Math.sin(Date.now()*.001+i));
+      bgCtx.beginPath();bgCtx.arc(sx,sy,1,0,Math.PI*2);
+      bgCtx.fillStyle=`rgba(255,255,220,${br*.5})`;bgCtx.fill();
+    }
+  }
+  function int(n){return Math.floor(n)}
+
+  bgParticles.forEach((p,idx)=>{
+    bgCtx.save();bgCtx.globalAlpha=p.alpha*(.5+.5*Math.sin(Date.now()*.002+p.phase));
+    if(p.type==='leaf'||p.type==='cloud'){
+      bgCtx.beginPath();bgCtx.ellipse(p.x,p.y,p.size*2,p.size,Math.sin(Date.now()*.001+p.phase),0,Math.PI*2);
+      bgCtx.fillStyle=`hsl(${p.hue},60%,40%)`;bgCtx.fill();
+    } else if(p.type==='bubble'){
+      bgCtx.beginPath();bgCtx.arc(p.x,p.y,p.size,0,Math.PI*2);
+      bgCtx.strokeStyle=`hsl(${p.hue},70%,70%)`;bgCtx.lineWidth=1;bgCtx.stroke();
+    } else {
+      bgCtx.beginPath();bgCtx.arc(p.x,p.y,p.size*.7,0,Math.PI*2);
+      bgCtx.fillStyle=`hsl(${p.hue},80%,${p.type==='ember'?70:60}%)`;bgCtx.fill();
+    }
+    bgCtx.restore();
+
+    p.y-=p.speed;
+    if(p.vx) p.x+=p.vx;
+    if(p.type==='ember'||p.type==='magic') p.hue=(p.hue+1)%360;
+    if(p.type==='firefly'){p.x+=Math.sin(Date.now()*.002+p.phase)*0.8}
+    if(p.y<-20||(p.vx&&(p.x<-20||p.x>W+20))){
+      bgParticles[idx]=makeParticle(theme,false);
+    }
+  });
+
+  bgAnim=requestAnimationFrame(()=>animBg(theme));
+}
+
+/* ============ ENEMY SVG ============ */
+const ENEMIES=[
+  // Stage 1: Slime (green blob)
+  `<ellipse cx="50" cy="62" rx="36" ry="24" fill="#2d8a4e"/>
+   <ellipse cx="50" cy="52" rx="28" ry="26" fill="#3aab60"/>
+   <circle cx="40" cy="46" r="6" fill="white"/><circle cx="60" cy="46" r="6" fill="white"/>
+   <circle cx="41" cy="47" r="3" fill="#1a5c30"/><circle cx="61" cy="47" r="3" fill="#1a5c30"/>
+   <path d="M42 58 Q50 64 58 58" stroke="#1a5c30" stroke-width="2" fill="none" stroke-linecap="round"/>
+   <ellipse cx="35" cy="68" rx="10" ry="5" fill="#2d8a4e" opacity=".5"/>
+   <ellipse cx="65" cy="68" rx="10" ry="5" fill="#2d8a4e" opacity=".5"/>`,
+
+  // Stage 2: Bat
+  `<path d="M10 45 Q20 20 40 40 Q50 30 60 40 Q80 20 90 45 Q70 38 60 50 Q50 42 40 50 Q30 38 10 45Z" fill="#5a3070"/>
+   <ellipse cx="50" cy="52" rx="14" ry="18" fill="#7a40a0"/>
+   <circle cx="44" cy="46" r="5" fill="white"/><circle cx="56" cy="46" r="5" fill="white"/>
+   <circle cx="44" cy="47" r="2.5" fill="#d00"/><circle cx="56" cy="47" r="2.5" fill="#d00"/>
+   <path d="M45 58 Q50 55 55 58" stroke="#5a3070" stroke-width="1.5" fill="none"/>
+   <path d="M46 61 L44 66 M50 62 L50 67 M54 61 L56 66" stroke="#5a3070" stroke-width="1.5" stroke-linecap="round"/>`,
+
+  // Stage 3: Golem
+  `<rect x="28" y="30" width="44" height="50" rx="6" fill="#6a5a4a"/>
+   <rect x="22" y="40" width="16" height="34" rx="4" fill="#7a6a5a"/>
+   <rect x="62" y="40" width="16" height="34" rx="4" fill="#7a6a5a"/>
+   <rect x="34" y="72" width="14" height="18" rx="4" fill="#7a6a5a"/>
+   <rect x="52" y="72" width="14" height="18" rx="4" fill="#7a6a5a"/>
+   <rect x="32" y="32" width="36" height="32" rx="4" fill="#8a7a6a"/>
+   <circle cx="41" cy="44" r="6" fill="#3a2a1a"/><circle cx="59" cy="44" r="6" fill="#3a2a1a"/>
+   <circle cx="42" cy="44" r="3" fill="#ff6600"/><circle cx="60" cy="44" r="3" fill="#ff6600"/>
+   <path d="M40 56 L45 52 L50 56 L55 52 L60 56" stroke="#3a2a1a" stroke-width="2" fill="none"/>`,
+
+  // Stage 4: Ghost / Spirit
+  `<path d="M50 18 Q72 18 76 46 Q76 76 50 86 Q24 76 24 46 Q28 18 50 18Z" fill="rgba(160,140,220,.85)"/>
+   <path d="M24 76 Q30 68 36 76 Q42 84 48 76 Q54 68 60 76 Q66 84 72 76 L76 76 L76 80 Q70 88 64 80 Q58 72 52 80 Q46 88 40 80 Q34 72 28 80Z" fill="rgba(160,140,220,.85)"/>
+   <circle cx="41" cy="48" r="7" fill="white"/><circle cx="59" cy="48" r="7" fill="white"/>
+   <circle cx="43" cy="49" r="3.5" fill="#4a30a0"/><circle cx="61" cy="49" r="3.5" fill="#4a30a0"/>
+   <path d="M42 62 Q50 68 58 62" stroke="#8060c0" stroke-width="2" fill="none" stroke-linecap="round"/>`,
+
+  // Stage 5: Dragon
+  `<ellipse cx="50" cy="58" rx="26" ry="22" fill="#c0390b"/>
+   <path d="M30 38 Q20 22 30 18 Q36 28 40 36Z" fill="#c0390b"/>
+   <path d="M70 38 Q80 22 70 18 Q64 28 60 36Z" fill="#c0390b"/>
+   <ellipse cx="50" cy="44" rx="22" ry="20" fill="#e04010"/>
+   <circle cx="41" cy="38" r="7" fill="white"/><circle cx="59" cy="38" r="7" fill="white"/>
+   <circle cx="42" cy="38" r="3.5" fill="#1a0000"/><circle cx="60" cy="38" r="3.5" fill="#1a0000"/>
+   <path d="M40 54 L44 50 L48 54 L52 50 L56 54 L60 50 L64 54" stroke="#8a2000" stroke-width="2" fill="none"/>
+   <path d="M50 66 Q44 72 38 68 Q42 64 50 66Z" fill="#ff6030"/>
+   <circle cx="44" cy="30" r="3" fill="#a02800"/><circle cx="56" cy="30" r="3" fill="#a02800"/>`,
+
+  // Stage 6: Wizard
+  `<path d="M50 12 L62 42 L38 42Z" fill="#4a20a0"/>
+   <ellipse cx="50" cy="58" rx="20" ry="24" fill="#5a28b8"/>
+   <circle cx="50" cy="46" r="16" fill="#6a38c8"/>
+   <circle cx="43" cy="42" r="5" fill="white"/><circle cx="57" cy="42" r="5" fill="white"/>
+   <circle cx="44" cy="43" r="2.5" fill="#ffd700"/><circle cx="58" cy="43" r="2.5" fill="#ffd700"/>
+   <path d="M44 52 Q50 57 56 52" stroke="#ffd700" stroke-width="2" fill="none" stroke-linecap="round"/>
+   <circle cx="28" cy="55" r="5" fill="rgba(255,215,0,.5)"/><circle cx="72" cy="48" r="4" fill="rgba(255,215,0,.4)"/>
+   <path d="M52 30 L60 18 M50 28 L54 14 M48 29 L46 16" stroke="#ffd700" stroke-width="1.5" stroke-linecap="round" opacity=".7"/>`,
+
+  // Stage 7: Robot
+  `<rect x="30" y="50" width="40" height="36" rx="4" fill="#3a5a7a"/>
+   <rect x="22" y="56" width="14" height="28" rx="4" fill="#4a6a8a"/>
+   <rect x="64" y="56" width="14" height="28" rx="4" fill="#4a6a8a"/>
+   <rect x="34" y="78" width="12" height="16" rx="3" fill="#3a5a7a"/>
+   <rect x="54" y="78" width="12" height="16" rx="3" fill="#3a5a7a"/>
+   <rect x="32" y="30" width="36" height="28" rx="6" fill="#4a6a8a"/>
+   <rect x="36" y="34" width="28" height="16" rx="3" fill="#1a2a3a"/>
+   <circle cx="42" cy="42" r="5" fill="#00e5ff" opacity=".9"/>
+   <circle cx="58" cy="42" r="5" fill="#00e5ff" opacity=".9"/>
+   <rect x="45" y="52" width="10" height="3" rx="1" fill="#ff4444"/>
+   <circle cx="50" cy="28" r="3" fill="#ff4444"/>`,
+
+  // Stage 8: Phoenix
+  `<ellipse cx="50" cy="54" rx="18" ry="20" fill="#e05000"/>
+   <path d="M50 14 Q42 30 32 28 Q40 38 34 50 Q44 42 50 34 Q56 42 66 50 Q60 38 68 28 Q58 30 50 14Z" fill="#ff8800"/>
+   <path d="M22 62 Q18 50 26 44 Q34 52 38 60Z" fill="#ff6600"/>
+   <path d="M78 62 Q82 50 74 44 Q66 52 62 60Z" fill="#ff6600"/>
+   <circle cx="44" cy="50" r="5" fill="white"/><circle cx="56" cy="50" r="5" fill="white"/>
+   <circle cx="45" cy="51" r="2.5" fill="#c02000"/><circle cx="57" cy="51" r="2.5" fill="#c02000"/>
+   <path d="M44 60 Q50 66 56 60" stroke="#c04000" stroke-width="2" fill="none" stroke-linecap="round"/>`,
+
+  // Stage 9: Dark Lord (final)
+  `<path d="M50 10 Q60 18 68 14 Q62 26 66 34 L50 28 L34 34 Q38 26 32 14 Q40 18 50 10Z" fill="#6600aa"/>
+   <ellipse cx="50" cy="56" rx="24" ry="26" fill="#440088"/>
+   <circle cx="50" cy="46" r="20" fill="#5500aa"/>
+   <circle cx="41" cy="40" r="7" fill="white"/><circle cx="59" cy="40" r="7" fill="white"/>
+   <circle cx="42" cy="40" r="4" fill="#aa00ff"/><circle cx="60" cy="40" r="4" fill="#aa00ff"/>
+   <circle cx="43" cy="40" r="1.5" fill="white"/><circle cx="61" cy="40" r="1.5" fill="white"/>
+   <path d="M42 54 Q50 60 58 54" stroke="#aa00ff" stroke-width="2" fill="none" stroke-linecap="round"/>
+   <path d="M26 46 Q18 36 22 28 Q30 38 34 46Z" fill="#6600aa" opacity=".7"/>
+   <path d="M74 46 Q82 36 78 28 Q70 38 66 46Z" fill="#6600aa" opacity=".7"/>
+   <circle cx="30" cy="32" r="4" fill="rgba(170,0,255,.6)"/><circle cx="70" cy="32" r="4" fill="rgba(170,0,255,.6)"/>`,
+];
+
+const ENEMY_GRADE_PALETTES=[
+  ['#38b86b','#1f7545'],['#4bb8d8','#26718b'],['#8b6bd8','#513a9a'],
+  ['#e5a63b','#9a641d'],['#e35b4f','#932d2a'],['#ba4fd3','#702486'],['#4d4b70','#201e3c']
+];
+function buildUniqueEnemy(level,stage){
+  const [main,dark]=ENEMY_GRADE_PALETTES[level];
+  const eye=level<2?'#173b2b':level<4?'#412060':level<6?'#ffcf33':'#ff365e';
+  const crown=level===6?'<path d="M31 28 L36 10 L48 23 L59 8 L69 28Z" fill="#c8a6ff" stroke="#fff" stroke-width="1.5"/>':'';
+  const horns=level>=3?`<path d="M31 35 Q18 ${18-stage*3} 24 ${9+stage*4} Q35 20 39 35Z" fill="${dark}"/><path d="M69 35 Q82 ${18-stage*3} 76 ${9+stage*4} Q65 20 61 35Z" fill="${dark}"/>`:'';
+  const wings=level===1||level===4?`<path d="M30 48 Q9 ${25+stage*4} 13 62 Q23 54 34 65Z" fill="${dark}" opacity=".85"/><path d="M70 48 Q91 ${25+stage*4} 87 62 Q77 54 66 65Z" fill="${dark}" opacity=".85"/>`:'';
+  const antenna=level===2?`<path d="M50 31 Q${37+stage*12} 15 50 8" stroke="${dark}" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="50" cy="8" r="5" fill="#ffd95a"/>`:'';
+  const armor=level>=5?`<path d="M27 58 L38 48 L50 55 L62 48 L73 58 L68 84 L32 84Z" fill="${dark}" opacity=".88"/><path d="M50 55 V84 M33 66 H67" stroke="${main}" stroke-width="2" opacity=".8"/>`:'';
+  const spots=Array.from({length:stage+1},(_,i)=>`<circle cx="${34+i*16}" cy="${67-(i%2)*8}" r="${3+stage}" fill="#fff" opacity=".24"/>`).join('');
+  const mouth=stage===0?'M42 61 Q50 67 58 61':stage===1?'M40 65 Q50 56 60 65':'M39 61 L45 67 L50 61 L55 67 L61 61';
+  return `${wings}${horns}${antenna}${crown}<ellipse cx="50" cy="61" rx="${29+stage*3}" ry="${25+stage*2}" fill="${dark}"/><ellipse cx="50" cy="50" rx="${24+stage}" ry="${23+stage}" fill="${main}"/>${armor}${spots}<circle cx="41" cy="45" r="7" fill="white"/><circle cx="59" cy="45" r="7" fill="white"/><circle cx="${42+stage}" cy="46" r="3.5" fill="${eye}"/><circle cx="${60-stage}" cy="46" r="3.5" fill="${eye}"/><path d="${mouth}" stroke="${eye}" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
+}
+function drawEnemy(level,stateStage=0){
+  const svg=document.getElementById('enemy-svg');
+  svg.innerHTML=buildUniqueEnemy(level,stateStage);
+  svg.setAttribute('aria-label',`${LEVEL_NAMES[level]} ステージ${stateStage+1}の敵`);
+}
+
+function buildUniqueEnemy(level,stage){
+  const palettes=[
+    ['#38b86b','#1f7545','#ffd95a'],['#4bb8d8','#26718b','#7fffd4'],
+    ['#8b6bd8','#513a9a','#ff8ad8'],['#e5a63b','#9a641d','#ff9f43'],
+    ['#e35b4f','#932d2a','#8eff6f'],['#ba4fd3','#702486','#c8a6ff'],
+    ['#4d4b70','#201e3c','#ff4f6d']
+  ];
+  const [main,dark,accent]=palettes[level];
+  const eye=level<2?'#173b2b':level<4?'#412060':level<6?'#ffcf33':'#ff365e';
+  const eyes=(y=45,r=7)=>`<circle cx="41" cy="${y}" r="${r}" fill="white"/><circle cx="59" cy="${y}" r="${r}" fill="white"/><circle cx="42" cy="${y+1}" r="${Math.max(2,r*.48)}" fill="${eye}"/><circle cx="60" cy="${y+1}" r="${Math.max(2,r*.48)}" fill="${eye}"/>`;
+  const mouth=[
+    `<path d="M40 62 Q50 70 60 62" stroke="${eye}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`,
+    `<path d="M39 64 Q50 56 61 64" stroke="${eye}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`,
+    `<path d="M38 62 L44 57 L50 64 L56 57 L62 62" stroke="${eye}" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`
+  ][stage];
+  const levelMarks=[
+    `<circle cx="50" cy="26" r="5" fill="${accent}"/><path d="M43 30 Q50 19 57 30" stroke="${accent}" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+    `<path d="M31 37 Q18 19 27 12 Q39 25 39 40Z" fill="${accent}"/><path d="M69 37 Q82 19 73 12 Q61 25 61 40Z" fill="${accent}"/>`,
+    `<path d="M50 31 Q35 14 50 8 Q65 14 50 31Z" fill="${accent}"/><circle cx="50" cy="9" r="4" fill="#fff" opacity=".85"/>`,
+    `<path d="M28 36 Q17 14 32 12 Q42 26 40 39Z" fill="${dark}"/><path d="M72 36 Q83 14 68 12 Q58 26 60 39Z" fill="${dark}"/><path d="M50 17 L56 31 L44 31Z" fill="${accent}"/>`,
+    `<path d="M26 49 Q8 32 17 18 Q34 31 38 49Z" fill="${accent}" opacity=".8"/><path d="M74 49 Q92 32 83 18 Q66 31 62 49Z" fill="${accent}" opacity=".8"/>`,
+    `<path d="M30 32 L25 12 L42 26 M70 32 L75 12 L58 26" fill="${accent}"/><path d="M34 70 H66" stroke="${accent}" stroke-width="5" stroke-linecap="round"/>`,
+    `<path d="M30 29 L36 10 L48 23 L59 8 L70 29Z" fill="${accent}" stroke="#fff" stroke-width="1.5"/><circle cx="50" cy="18" r="4" fill="#fff"/>`
+  ][level];
+  if(stage===0){
+    const extras=[
+      `<circle cx="30" cy="68" r="7" fill="${main}" opacity=".65"/><circle cx="70" cy="68" r="7" fill="${main}" opacity=".65"/>`,
+      `<path d="M29 65 Q16 57 19 46 Q32 51 38 63Z" fill="${accent}" opacity=".75"/><path d="M71 65 Q84 57 81 46 Q68 51 62 63Z" fill="${accent}" opacity=".75"/>`,
+      `<circle cx="28" cy="62" r="8" fill="${accent}" opacity=".75"/><circle cx="72" cy="62" r="8" fill="${accent}" opacity=".75"/>`,
+      `<path d="M33 73 L28 86 M67 73 L72 86" stroke="${dark}" stroke-width="5" stroke-linecap="round"/>`,
+      `<path d="M35 70 Q50 82 65 70" stroke="${accent}" stroke-width="4" fill="none" stroke-linecap="round"/>`,
+      `<rect x="36" y="70" width="28" height="10" rx="4" fill="${accent}" opacity=".65"/>`,
+      `<path d="M24 58 Q14 45 22 34 Q34 45 37 59Z" fill="${dark}"/><path d="M76 58 Q86 45 78 34 Q66 45 63 59Z" fill="${dark}"/>`
+    ][level];
+    return `<ellipse cx="50" cy="66" rx="${32+level%3}" ry="20" fill="${dark}"/><ellipse cx="50" cy="52" rx="${25+level%2}" ry="24" fill="${main}"/>${levelMarks}${extras}${eyes(47,6)}${mouth}`;
+  }
+  if(stage===1){
+    const silhouettes=[
+      `<path d="M18 53 Q13 31 35 42 Q50 25 65 42 Q87 31 82 53 Q68 49 61 61 Q50 53 39 61 Q32 49 18 53Z" fill="${dark}"/>`,
+      `<path d="M20 75 Q23 38 50 23 Q77 38 80 75 Q66 68 58 80 Q50 69 42 80 Q34 68 20 75Z" fill="${dark}" opacity=".92"/>`,
+      `<path d="M50 13 L61 39 L87 43 L66 57 L72 82 L50 68 L28 82 L34 57 L13 43 L39 39Z" fill="${dark}"/>`,
+      `<path d="M25 70 Q19 38 36 38 Q40 22 50 20 Q60 22 64 38 Q81 38 75 70 Q62 65 50 72 Q38 65 25 70Z" fill="${dark}"/>`,
+      `<path d="M22 62 Q17 44 28 36 Q38 50 43 64Z" fill="${dark}"/><path d="M78 62 Q83 44 72 36 Q62 50 57 64Z" fill="${dark}"/><ellipse cx="50" cy="60" rx="25" ry="23" fill="${dark}"/>`,
+      `<path d="M50 10 Q63 24 73 18 Q69 34 80 42 Q63 43 50 36 Q37 43 20 42 Q31 34 27 18 Q37 24 50 10Z" fill="${dark}"/>`,
+      `<path d="M50 8 L61 29 L84 26 L70 44 L83 64 L60 61 L50 82 L40 61 L17 64 L30 44 L16 26 L39 29Z" fill="${dark}"/>`
+    ][level];
+    return `${silhouettes}<ellipse cx="50" cy="51" rx="24" ry="22" fill="${main}"/>${levelMarks}${eyes(48,6)}${mouth}`;
+  }
+  const bossShapes=[
+    `<path d="M50 17 L62 39 L86 42 L67 58 L73 82 L50 69 L27 82 L33 58 L14 42 L38 39Z" fill="${dark}"/>`,
+    `<rect x="26" y="37" width="48" height="47" rx="9" fill="${dark}"/><rect x="33" y="25" width="34" height="31" rx="7" fill="${main}"/>`,
+    `<path d="M24 80 L31 38 L50 18 L69 38 L76 80 Q61 72 50 82 Q39 72 24 80Z" fill="${dark}"/>`,
+    `<ellipse cx="50" cy="61" rx="31" ry="25" fill="${dark}"/><circle cx="50" cy="43" r="25" fill="${main}"/><path d="M30 34 Q18 14 32 11 Q42 26 40 39Z" fill="${dark}"/><path d="M70 34 Q82 14 68 11 Q58 26 60 39Z" fill="${dark}"/>`,
+    `<path d="M31 31 Q17 12 30 9 Q42 24 42 38Z" fill="${dark}"/><path d="M69 31 Q83 12 70 9 Q58 24 58 38Z" fill="${dark}"/><ellipse cx="50" cy="60" rx="30" ry="25" fill="${dark}"/>`,
+    `<rect x="24" y="39" width="52" height="45" rx="8" fill="${dark}"/><rect x="31" y="27" width="38" height="29" rx="7" fill="${main}"/><circle cx="50" cy="20" r="5" fill="${accent}"/>`,
+    `<path d="M50 7 L61 27 L84 24 L70 43 L87 57 L64 60 L62 83 L50 68 L38 83 L36 60 L13 57 L30 43 L16 24 L39 27Z" fill="${dark}"/>`
+  ][level];
+  const face=level===1||level===5?`<rect x="36" y="37" width="28" height="14" rx="3" fill="#10152a"/>${eyes(44,4)}`:`<ellipse cx="50" cy="47" rx="25" ry="23" fill="${main}"/>${eyes(45,7)}`;
+  return `${bossShapes}${levelMarks}${face}${mouth}<circle cx="29" cy="65" r="7" fill="${accent}" opacity=".7"/><circle cx="71" cy="65" r="7" fill="${accent}" opacity=".7"/>`;
+}
+
+function drawEnemy(level,stateStage=0){
+  const svg=document.getElementById('enemy-svg');
+  svg.innerHTML=buildUniqueEnemy(level,stateStage);
+  svg.setAttribute('aria-label',`${LEVEL_NAMES[level]} stage ${stateStage+1} enemy`);
+}
+
+
+function showPainFace(){
+  const area=document.querySelector('.enemy-area');
+  const face=document.createElement('div');
+  face.className='enemy-face-overlay';
+  face.textContent='＞＜';
+  area.appendChild(face);
+  setTimeout(()=>face.remove(),500);
+}
+
+function showDefeatAnimation(callback){
+  const area=document.querySelector('.enemy-area');
+  const enemy=document.getElementById('enemy-svg');
+  clearInterval(state.timer);
+  enemy.classList.remove('defeated');
+  void enemy.offsetWidth;
+  enemy.classList.add('defeated');
+
+  const burst=document.createElement('div');
+  burst.className='defeat-burst';
+  burst.textContent='撃破!';
+  area.appendChild(burst);
+
+  for(let i=0;i<18;i++){
+    const s=document.createElement('span');
+    s.className='hit-spark';
+    s.style.left=(45+Math.random()*12)+'%';
+    s.style.top=(35+Math.random()*24)+'px';
+    s.style.setProperty('--dx',((Math.random()-.5)*130)+'px');
+    s.style.setProperty('--dy',((Math.random()-.75)*110)+'px');
+    area.appendChild(s);
+    setTimeout(()=>s.remove(),700);
+  }
+
+  setTimeout(()=>{
+    burst.remove();
+    enemy.classList.remove('defeated');
+    if(callback)callback();
+  },1100);
+}
+
+function showDamageEffect(points){
+  const area=document.querySelector('.enemy-area');
+  const enemy=document.getElementById('enemy-svg');
+  enemy.classList.remove('damage');
+  void enemy.offsetWidth;
+  enemy.classList.add('damage');
+
+  const dmg=document.createElement('div');
+  dmg.className='damage-pop';
+  dmg.textContent='-'+Math.max(1,Math.floor(points/5));
+  area.appendChild(dmg);
+  setTimeout(()=>dmg.remove(),800);
+
+  for(let i=0;i<10;i++){
+    const s=document.createElement('span');
+    s.className='hit-spark';
+    s.style.left=(48+Math.random()*8)+'%';
+    s.style.top=(38+Math.random()*18)+'px';
+    s.style.setProperty('--dx',((Math.random()-.5)*90)+'px');
+    s.style.setProperty('--dy',((Math.random()-.8)*70)+'px');
+    area.appendChild(s);
+    setTimeout(()=>s.remove(),600);
+  }
+}
+
+function showPainFace(){
+  const area=document.querySelector('.enemy-area');
+  const face=document.createElement('div');
+  face.className='enemy-face-overlay';
+  face.textContent='><';
+  area.appendChild(face);
+  setTimeout(()=>face.remove(),560);
+}
+
+function showDefeatAnimation(callback){
+  const area=document.querySelector('.enemy-area');
+  const enemy=document.getElementById('enemy-svg');
+  clearInterval(state.timer);
+  document.querySelectorAll('.defeat-burst,.defeat-shadow,.defeat-smoke,.enemy-impact,.enemy-face-overlay').forEach(el=>el.remove());
+  enemy.classList.remove('damage','hit','defeated');
+  void enemy.offsetWidth;
+  enemy.classList.add('defeated');
+
+  const shadow=document.createElement('div');
+  shadow.className='defeat-shadow';
+  area.appendChild(shadow);
+
+  const burst=document.createElement('div');
+  burst.className='defeat-burst';
+  burst.textContent='DOWN!';
+  area.appendChild(burst);
+
+  const dizzy=document.createElement('div');
+  dizzy.className='enemy-face-overlay';
+  dizzy.textContent='xx';
+  area.appendChild(dizzy);
+
+  for(let i=0;i<22;i++){
+    const s=document.createElement('span');
+    s.className='hit-spark';
+    s.style.left=(43+Math.random()*14)+'%';
+    s.style.top=(28+Math.random()*32)+'px';
+    s.style.setProperty('--dx',((Math.random()-.5)*150)+'px');
+    s.style.setProperty('--dy',((Math.random()-.75)*125)+'px');
+    area.appendChild(s);
+    setTimeout(()=>s.remove(),760);
+  }
+
+  for(let i=0;i<9;i++){
+    const smoke=document.createElement('span');
+    smoke.className='defeat-smoke';
+    smoke.style.setProperty('--dx',((Math.random()-.5)*95)+'px');
+    smoke.style.setProperty('--dy',(-18-Math.random()*56)+'px');
+    area.appendChild(smoke);
+    setTimeout(()=>smoke.remove(),1000);
+  }
+
+  setTimeout(()=>{
+    burst.remove();
+    shadow.remove();
+    dizzy.remove();
+    enemy.classList.remove('defeated');
+    if(callback)callback();
+  },1180);
+}
+
+function showDamageEffect(points){
+  const area=document.querySelector('.enemy-area');
+  const enemy=document.getElementById('enemy-svg');
+  document.querySelectorAll('.enemy-impact,.enemy-face-overlay').forEach(el=>el.remove());
+  enemy.classList.remove('damage','hit');
+  void enemy.offsetWidth;
+  enemy.classList.add('damage');
+  setTimeout(()=>enemy.classList.remove('damage'),760);
+
+  const impact=document.createElement('div');
+  impact.className='enemy-impact';
+  area.appendChild(impact);
+  setTimeout(()=>impact.remove(),450);
+
+  const dmg=document.createElement('div');
+  dmg.className='damage-pop';
+  dmg.textContent='-'+Math.max(1,Math.floor(points/5));
+  area.appendChild(dmg);
+  setTimeout(()=>dmg.remove(),850);
+
+  for(let i=0;i<16;i++){
+    const s=document.createElement('span');
+    s.className='hit-spark';
+    s.style.left=(45+Math.random()*12)+'%';
+    s.style.top=(30+Math.random()*26)+'px';
+    s.style.setProperty('--dx',((Math.random()-.5)*120)+'px');
+    s.style.setProperty('--dy',((Math.random()-.8)*92)+'px');
+    area.appendChild(s);
+    setTimeout(()=>s.remove(),650);
+  }
+  showPainFace();
+}
+
+function showQuickBonusEffect(points){
+  document.querySelectorAll('.quick-bonus-burst,.quick-bonus-spark').forEach(el=>el.remove());
+
+  const bonus=document.createElement('div');
+  bonus.className='quick-bonus-burst';
+  bonus.innerHTML='<div class="quick-bonus-ring"></div><div class="quick-bonus-main">SPEED BONUS ×2</div><div class="quick-bonus-sub">+'+points+' pt!</div>';
+  document.body.appendChild(bonus);
+  setTimeout(()=>bonus.remove(),1100);
+
+  const scoreBox=document.querySelector('.hud-score');
+  if(scoreBox){
+    scoreBox.classList.remove('quick-bonus-score');
+    void scoreBox.offsetWidth;
+    scoreBox.classList.add('quick-bonus-score');
+    setTimeout(()=>scoreBox.classList.remove('quick-bonus-score'),800);
+  }
+
+  for(let i=0;i<22;i++){
+    const spark=document.createElement('span');
+    spark.className='quick-bonus-spark';
+    const angle=(Math.PI*2/22)*i;
+    const distance=90+Math.random()*130;
+    spark.style.setProperty('--dx',(Math.cos(angle)*distance)+'px');
+    spark.style.setProperty('--dy',(Math.sin(angle)*distance)+'px');
+    document.body.appendChild(spark);
+    setTimeout(()=>spark.remove(),900);
+  }
+}
+
+function animateEnemy(cls){
+  const el=document.getElementById('enemy-svg');
+  el.classList.remove('hit','miss');
+  void el.offsetWidth;
+  el.classList.add(cls);
+}
+
+/* ============ GAME LOGIC ============ */
+function shuffle(a){return[...a].sort(()=>Math.random()-.5)}
+
+
+function selectMode(mode){
+  state.mode=mode;
+  document.querySelectorAll('.mode-card').forEach(btn=>{
+    btn.classList.toggle('selected',
+      (mode==='jp2en'&&btn.textContent.includes('日本語→英語'))||
+      (mode==='en2jp'&&btn.textContent.includes('英語→日本語'))
+    );
+  });
+}
+
+
+function getQuestionText(q){return state.mode==='jp2en'?q.j:q.e;}
+function getAnswerText(q){return state.mode==='jp2en'?q.e:q.j;}
+function normalizeAnswer(s){return String(s||'').trim().toLowerCase();}
+
+function selectQuizType(type){
+  state.quizType=type;
+  document.querySelectorAll('.quiz-card').forEach(btn=>{
+    btn.classList.toggle('selected',
+      (type==='input'&&btn.textContent.includes('入力'))||
+      (type==='choice'&&btn.textContent.includes('四択'))
+    );
+  });
+}
+
+
+function loadWordFile(event){
+  const file=event.target.files[0];
+  const status=document.getElementById('upload-status');
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      let rows=[];
+      if(file.name.toLowerCase().endsWith('.csv')){
+        rows=String(e.target.result).split(/\r?\n/).map(line=>line.split(',').map(v=>v.trim()));
+      }else{
+        if(typeof XLSX==='undefined'){
+          status.textContent='Excel読み込みに必要な機能を取得できませんでした。CSVで試してください。';
+          return;
+        }
+        const data=new Uint8Array(e.target.result);
+        const workbook=XLSX.read(data,{type:'array'});
+        const sheet=workbook.Sheets[workbook.SheetNames[0]];
+        rows=XLSX.utils.sheet_to_json(sheet,{header:1});
+      }
+
+      const imported=[];
+      rows.forEach(row=>{
+        if(!row||row.length<3)return;
+        const noRaw=String(row[0]||'').trim();
+        const en=String(row[1]||'').trim();
+        const ja=String(row[2]||'').trim();
+        const no=Number.parseInt(noRaw,10);
+        if(!no||!en||!ja)return;
+        if(noRaw==='No'||en==='英単語'||ja==='日本語訳'||ja==='和訳')return;
+        imported.push({no:no,e:en,j:ja});
+      });
+
+      imported.sort((a,b)=>a.no-b.no);
+
+      if(imported.length<4){
+        status.textContent='4語以上必要です。1列目=No、2列目=英単語、3列目=日本語訳にしてください。';
+        return;
+      }
+
+      state.customWordsAll=imported;
+      WORDS.custom=imported;
+      LEVEL_KEYS.forEach((_,i)=>LEVEL_KEYS[i]='custom');
+
+      const rangeSelect=document.getElementById('range-select');
+      const maxNo=Math.max(...imported.map(w=>w.no));
+      const maxBlock=Math.ceil(maxNo/100);
+      rangeSelect.innerHTML='<option value="all">すべて</option>';
+      for(let i=0;i<maxBlock;i++){
+        const start=i*100+1;
+        const end=(i+1)*100;
+        const count=imported.filter(w=>w.no>=start&&w.no<=end).length;
+        if(count>0){
+          const opt=document.createElement('option');
+          opt.value=`${start}-${end}`;
+          opt.textContent=`No${start}〜${end}（${count}語）`;
+          rangeSelect.appendChild(opt);
+        }
+      }
+
+      applyWordSettings();
+      status.textContent=`${imported.length}語を読み込みました。範囲と出題順を選べます。`;
+    }catch(err){
+      status.textContent='読み込みに失敗しました。1列目=No、2列目=英単語、3列目=日本語訳にしてください。';
+    }
+  };
+  if(file.name.toLowerCase().endsWith('.csv'))reader.readAsText(file,'UTF-8');
+  else reader.readAsArrayBuffer(file);
+}
+
+function applyWordSettings(){
+  if(!state.customWordsAll||state.customWordsAll.length===0)return;
+  const rangeValue=document.getElementById('range-select')?.value||'all';
+  state.wordOrder=document.getElementById('order-select')?.value||'random';
+
+  let selected=[...state.customWordsAll];
+  if(rangeValue!=='all'){
+    const parts=rangeValue.split('-').map(Number);
+    selected=selected.filter(w=>w.no>=parts[0]&&w.no<=parts[1]);
+  }
+  selected.sort((a,b)=>a.no-b.no);
+  WORDS.custom=selected;
+
+  const status=document.getElementById('upload-status');
+  if(status){
+    const orderText=state.wordOrder==='ordered'?'順番通り':'ランダム';
+    status.textContent=`現在の単語数：${selected.length}語 / 出題順：${orderText}`;
+  }
+}
+
+
+function buildChoices(correct){
+  const key=state.mode==='jp2en'?'e':'j';
+  const words=WORDS[LEVEL_KEYS[state.level]]||[];
+  const all=words.map(w=>w[key]).filter(v=>v&&normalizeAnswer(v)!==normalizeAnswer(correct));
+  const wrong=shuffle([...new Set(all)]).slice(0,3);
+  const fallback=state.mode==='jp2en'?['apple','study','music','people','future','world']:['りんご','勉強','音楽','人々','未来','世界'];
+  fallback.forEach(f=>{if(wrong.length<3&&normalizeAnswer(f)!==normalizeAnswer(correct)&&!wrong.includes(f))wrong.push(f);});
+  return shuffle([correct,...wrong].slice(0,4));
+}
+
+function renderChoices(){
+  const grid=document.getElementById('choice-grid');
+  const inputRow=document.getElementById('input-row');
+  const q=state.stageQ[state.qIndex];
+  const correct=getAnswerText(q);
+  if(state.quizType!=='choice'){
+    grid.style.display='none';
+    inputRow.style.display='flex';
+    return;
+  }
+  inputRow.style.display='none';
+  grid.style.display='grid';
+  grid.innerHTML=buildChoices(correct).map(c=>`<button class="choice-btn" onclick="submitChoice(this)">${c}</button>`).join('');
+}
+
+function submitChoice(btn){
+  if(state.answered)return;
+  const correct=getAnswerText(state.stageQ[state.qIndex]);
+  if(normalizeAnswer(btn.textContent)===normalizeAnswer(correct)){
+    btn.classList.add('correct');
+    onCorrect();
+  }else{
+    btn.classList.add('wrong');
+    document.querySelectorAll('.choice-btn').forEach(b=>{
+      if(normalizeAnswer(b.textContent)===normalizeAnswer(correct))b.classList.add('correct');
+    });
+    onWrong(false);
+  }
+}
+
+function selectTimeLimit(sec){
+  state.selectedTime=sec;
+  document.querySelectorAll('.time-card').forEach(btn=>{
+    btn.classList.toggle('selected',btn.textContent.trim()===sec+'秒');
+  });
+}
+
+function selectLevel(n){
+  state.level=n;
+  document.querySelectorAll('.level-card').forEach((c,i)=>c.classList.toggle('selected',i===n));
+}
+function startGame(){
+  state.stage=0;state.score=0;state.lives=3;state.combo=0;state.maxCombo=0;state.correct=0;state.wrongWords=[];state.attemptedWords=[];state.reviewMode=false;state.scoreSaved=false;
+  applyWordSettings();
+  const baseWords=WORDS[LEVEL_KEYS[state.level]];
+  state.pool=state.wordOrder==='ordered'?[...baseWords]:shuffle(baseWords);
+  show('screen-game');
+  startBattleBgm();
+  loadStage();
+}
+function loadStage(){
+  const themeIdx=(state.level*STAGES+state.stage)%STAGE_THEMES.length;
+  initBg(themeIdx);
+  drawEnemy(state.level,state.stage);
+  const offset=(state.stage*Q_PER_STAGE)%state.pool.length;
+  state.stageQ=(state.wordOrder==='ordered'?state.pool.slice(offset,offset+Q_PER_STAGE):shuffle(state.pool.slice(offset)).slice(0,Q_PER_STAGE));
+  state.qIndex=0;
+  loadQuestion();
+}
+function loadQuestion(){
+  state.answered=false;state.hintUsed=false;
+  state.questionStartedAt=performance.now();
+  const q=state.stageQ[state.qIndex];
+  document.getElementById('q-meaning').textContent=getQuestionText(q);
+  document.querySelector('.q-label').textContent=state.mode==='jp2en'?'この英単語は？':'この日本語は？';
+  document.getElementById('q-hint').textContent='';
+  document.getElementById('answer-input').value='';
+  document.getElementById('answer-input').className='';
+  document.getElementById('feedback').textContent='';
+  document.getElementById('feedback').className='feedback';
+  document.getElementById('hint-btn').disabled=false;
+  renderChoices();
+  updateStageLabel();updateLives();updateDots();resetTimer();
+}
+function updateStageLabel(){
+  document.getElementById('stage-label').textContent=
+    state.reviewMode?'振り返り練習':`${LEVEL_NAMES[state.level]} — ステージ ${state.stage+1}/${STAGES}`;
+}
+function updateLives(){
+  const el=document.getElementById('lives-display');el.innerHTML='';
+  for(let i=0;i<3;i++){
+    const h=document.createElement('span');
+    h.className='heart'+(i>=state.lives?' lost':'');
+    h.textContent='❤';el.appendChild(h);
+  }
+}
+function updateDots(){
+  const el=document.getElementById('progress-dots');el.innerHTML='';
+  const dotCount=state.reviewMode?state.stageQ.length:Q_PER_STAGE;
+  for(let i=0;i<dotCount;i++){
+    const d=document.createElement('div');
+    d.className='p-dot'+(i<state.qIndex?' done':i===state.qIndex?' current':'');
+    el.appendChild(d);
+  }
+}
+function resetTimer(){
+  clearInterval(state.timer);
+  state.timeLeft=state.selectedTime;
+  updateTimerUI();
+  state.timer=setInterval(()=>{
+    if(state.answered)return;
+    state.timeLeft-=.1;
+    if(state.timeLeft<=0){state.timeLeft=0;updateTimerUI();clearInterval(state.timer);onWrong(true);}
+    else updateTimerUI();
+  },100);
+}
+function updateTimerUI(){
+  const total=state.selectedTime;
+  const pct=Math.max(0,state.timeLeft/total*100);
+  const fill=document.getElementById('timer-fill');
+  fill.style.width=pct+'%';
+  fill.style.background=pct>50?'var(--c-green)':pct>25?'#ff9800':'var(--c-red)';
+  document.getElementById('timer-val').textContent=Math.ceil(state.timeLeft);
+}
+function submitAnswer(){
+  if(state.answered)return;
+  const val=document.getElementById('answer-input').value.trim().toLowerCase();
+  if(!val)return;
+  const correct=normalizeAnswer(getAnswerText(state.stageQ[state.qIndex]));
+  if(normalizeAnswer(val)===correct)onCorrect();else onWrong(false);
+}
+function recordAttempt(type,isCorrect){
+  const word=state.stageQ[state.qIndex];
+  state.attemptedWords.push({...word,type,isCorrect});
+  if(!isCorrect)state.wrongWords.push({...word,type});
+}
+function onCorrect(){
+  state.answered=true;clearInterval(state.timer);
+  recordAttempt('正解',true);
+  state.combo++;state.maxCombo=Math.max(state.maxCombo,state.combo);state.correct++;
+  const base=LEVEL_BASE_SCORES[state.level]||10;
+  const timeBonus=Math.max(0,Math.floor(state.timeLeft*2));
+  const comboMultiplier=1+Math.floor(state.combo/3)*0.25;
+  const comboBonus=state.combo>=2?state.combo*3:0;
+  const rawPts=(base+timeBonus+comboBonus)*comboMultiplier;
+  const normalPts=Math.max(base,Math.floor(rawPts)-(state.hintUsed?5:0));
+  const quickChoiceBonus=state.quizType==='choice'&&performance.now()-state.questionStartedAt<=2000;
+  const pts=quickChoiceBonus?normalPts*2:normalPts;
+  let recovered=false;
+  if(state.combo%5===0&&state.lives<3){
+    state.lives++;
+    recovered=true;
+    updateLives();
+  }
+  state.score+=pts;
+  document.getElementById('score-val').textContent=state.score;
+  document.getElementById('answer-input').classList.add('correct');
+  const fb=document.getElementById('feedback');
+  const multText=comboMultiplier>1?` ×${comboMultiplier.toFixed(2)}`:'';
+  const quickText=quickChoiceBonus?' ｜ 2秒ボーナス×2':'';
+  fb.textContent=state.combo>=2?`✓ 正解！ ${state.combo}コンボ${multText}${quickText} ＋${pts}pt${recovered?' ｜ ライフ回復！':''}`:`✓ 正解！${quickText} ＋${pts}pt`;
+  fb.className='feedback ok';
+  document.getElementById('combo-disp').textContent=state.combo>=2?`🔥 ${state.combo} COMBO!${recovered?' ❤ +1':''}`:'';
+  animateEnemy('hit');
+  showDamageEffect(pts);
+  if(quickChoiceBonus)showQuickBonusEffect(pts);
+  showPainFace();
+  playAttack();
+  if(state.combo>=3){playCombo();flashScreen('#ffd700');}
+  else{playCorrect();flashScreen('#00ff88');}
+  setTimeout(nextQuestion,900);
+}
+function onWrong(timeout){
+  state.answered=true;clearInterval(state.timer);
+  state.combo=0;
+  recordAttempt(timeout?'時間切れ':'不正解',false);
+  state.lives--;updateLives();
+  const correct=getAnswerText(state.stageQ[state.qIndex]);
+  document.getElementById('answer-input').classList.add('wrong');
+  const fb=document.getElementById('feedback');
+  fb.textContent=timeout?`⏰ 時間切れ！ 正解: ${correct}`:`✗ 不正解！ 正解: ${correct}`;
+  fb.className='feedback bad';
+  document.getElementById('combo-disp').textContent='';
+  animateEnemy('miss');
+  if(timeout)playTimeout();else playWrong();
+  flashScreen('#ff4444');
+  if(state.lives<=0){setTimeout(gameOver,1200);return;}
+  setTimeout(nextQuestion,1200);
+}
+
+function skipQuestion(){
+  if(state.answered)return;
+  state.answered=true;
+  clearInterval(state.timer);
+  state.combo=0;
+  recordAttempt('スキップ',false);
+  const correct=getAnswerText(state.stageQ[state.qIndex]);
+  const fb=document.getElementById('feedback');
+  fb.textContent=`スキップしました。正解: ${correct}`;
+  fb.className='feedback bad';
+  document.getElementById('combo-disp').textContent='';
+  animateEnemy('miss');
+  playTimeout();
+  flashScreen('#ff9800');
+  setTimeout(nextQuestion,900);
+}
+
+function nextQuestion(){
+  state.qIndex++;
+  if(state.qIndex>=state.stageQ.length){
+    if(state.reviewMode){state.reviewMode=false;endGame(true);return;}
+    showDefeatAnimation(stageClear);
+  }
+  else loadQuestion();
+}
+function stageClear(){
+  clearInterval(state.timer);state.stage++;
+  if(state.stage>=STAGES){gameClear();return;}
+  stopBattleBgm();
+  playStageClear();
+  document.getElementById('sc-msg').textContent=`スコア: ${state.score}pt`;
+  document.getElementById('sc-stats').innerHTML=
+    `<div class="stat-box"><div class="stat-val">${state.score}</div><div class="stat-lbl">スコア</div></div>
+     <div class="stat-box"><div class="stat-val">${state.correct}</div><div class="stat-lbl">正解数</div></div>
+     <div class="stat-box"><div class="stat-val">${state.maxCombo}</div><div class="stat-lbl">最大コンボ</div></div>`;
+  show('screen-stageclear');
+}
+function nextStage(){show('screen-game');startBattleBgm();loadStage();}
+function gameClear(){endGame(true);}
+function gameOver(){endGame(false);}
+function endGame(win){
+  clearInterval(state.timer);
+  stopBattleBgm();
+  if(win)playGameClear();
+  document.getElementById('result-grade').textContent=win?(state.score>500?'🏆':'🥇'):(state.correct>15?'💪':'😢');
+  document.getElementById('result-title').textContent=win?'ゲームクリア！':'ゲームオーバー';
+  document.getElementById('result-sub').textContent=win
+    ?`${LEVEL_NAMES[state.level]}をすべてクリア！素晴らしい！`
+    :`正解数: ${state.correct}　もう一度チャレンジしよう！`;
+  document.getElementById('r-score').textContent=state.score;
+  document.getElementById('r-correct').textContent=state.correct;
+  document.getElementById('r-combo').textContent=state.maxCombo;
+  if(!state.reviewMode&&!state.scoreSaved){saveScoreHistory(win);state.scoreSaved=true;}
+  if(bgAnim){cancelAnimationFrame(bgAnim);bgAnim=null;}
+  show('screen-result');
+}
+function showHint(){
+  state.hintUsed=true;document.getElementById('hint-btn').disabled=true;
+  const ans=getAnswerText(state.stageQ[state.qIndex]);
+  document.getElementById('q-hint').textContent=`ヒント: ${ans[0]}${'_'.repeat(ans.length-1)}（${ans.length}文字）`;
+}
+function showRetireModal(){
+  clearInterval(state.timer);
+  document.getElementById('retire-modal').classList.add('show');
+}
+function hideRetireModal(){
+  document.getElementById('retire-modal').classList.remove('show');
+  resetTimer();
+}
+function confirmRetire(){
+  document.getElementById('retire-modal').classList.remove('show');
+  endGame(false);
+}
+
+
+function getScoreHistory(){
+  try{return JSON.parse(localStorage.getItem('eigoDeGoScoreHistory')||'[]');}
+  catch(e){return [];}
+}
+function saveScoreHistory(win){
+  const history=getScoreHistory();
+  history.unshift({
+    date:new Date().toLocaleString('ja-JP'),
+    level:LEVEL_NAMES[state.level],
+    time:state.selectedTime,
+    mode:state.mode==='jp2en'?'日本語→英語':'英語→日本語',
+    score:state.score,
+    correct:state.correct,
+    maxCombo:state.maxCombo,
+    result:win?'クリア':'ゲームオーバー'
+  });
+  localStorage.setItem('eigoDeGoScoreHistory',JSON.stringify(history.slice(0,30)));
+}
+function showScoreHistory(){
+  const list=document.getElementById('history-list');
+  const history=getScoreHistory();
+  if(history.length===0){
+    list.innerHTML='<div class="history-empty">まだスコア履歴はありません。</div>';
+  }else{
+    list.innerHTML=history.map((h,i)=>`
+      <div class="history-item">
+        <div class="history-main">
+          <div>
+            <div class="history-level">${i+1}. ${h.level} / ${h.mode||'日本語→英語'} / ${h.time}秒</div>
+            <div class="history-sub">${h.date}｜${h.result}</div>
+          </div>
+          <div class="history-score">${h.score}</div>
+        </div>
+        <div class="history-sub">正解数: ${h.correct}　最大コンボ: ${h.maxCombo}</div>
+      </div>
+    `).join('');
+  }
+  show('screen-history');
+}
+function clearScoreHistory(){
+  localStorage.removeItem('eigoDeGoScoreHistory');
+  showScoreHistory();
+}
+
+function showReview(){
+  const list=document.getElementById('review-list');
+  const attempts=state.attemptedWords;
+  if(attempts.length===0){
+    list.innerHTML='<div class="review-empty">まだ振り返る問題がありません。</div>';
+  }else{
+    list.innerHTML=attempts.map((w,i)=>`
+      <div class="review-item${w.isCorrect?' correct-answer':''}">
+        <span class="review-status">${w.type}</span>
+        <div class="review-j">${i+1}. ${w.j}</div>
+        <div class="review-e">${w.e}</div>
+      </div>
+    `).join('');
+  }
+  show('screen-review');
+}
+function retryWrongWords(){
+  const unique=[];
+  const seen=new Set();
+  state.wrongWords.forEach(w=>{
+    const key=w.j+'|'+w.e;
+    if(!seen.has(key)){seen.add(key);unique.push({j:w.j,e:w.e});}
+  });
+  if(unique.length===0){show('screen-result');return;}
+  state.reviewMode=true;
+  state.stage=0;
+  state.qIndex=0;
+  state.lives=3;
+  state.combo=0;
+  state.stageQ=unique;
+  show('screen-game');
+  startBattleBgm();
+  initBg(0);
+  drawEnemy(state.level,0);
+  loadQuestion();
+}
+
+function retryGame(){startGame();}
+function goMenu(){stopBattleBgm();show('screen-title');initBg(0);}
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='screen-title'&&!bgAnim)initBg(0);
+}
+
+/* Final enemy renderer: one explicit character per grade and stage. */
+function buildEnemyCharacter(level,stage){
+  const p=[
+    ['#38b86b','#1f7545','#ffd95a'],['#4bb8d8','#26718b','#7fffd4'],
+    ['#8b6bd8','#513a9a','#ff8ad8'],['#e5a63b','#9a641d','#ff9f43'],
+    ['#e35b4f','#932d2a','#8eff6f'],['#ba4fd3','#702486','#c8a6ff'],
+    ['#4d4b70','#201e3c','#ff4f6d']
+  ][level];
+  const [main,dark,accent]=p;
+  const eye=level<2?'#173b2b':level<4?'#412060':level<6?'#ffcf33':'#ff365e';
+  const eyes=(y=45,r=7)=>`<circle cx="41" cy="${y}" r="${r}" fill="#fff"/><circle cx="59" cy="${y}" r="${r}" fill="#fff"/><circle cx="42" cy="${y+1}" r="${Math.max(2,r*.48)}" fill="${eye}"/><circle cx="60" cy="${y+1}" r="${Math.max(2,r*.48)}" fill="${eye}"/>`;
+  const smile=`<path d="M40 62 Q50 70 60 62" stroke="${eye}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+  const angry=`<path d="M39 64 Q50 56 61 64" stroke="${eye}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+  const teeth=`<path d="M38 61 L44 67 L50 61 L56 67 L62 61" stroke="${eye}" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+  const mark=[
+    `<circle cx="50" cy="25" r="5" fill="${accent}"/>`,
+    `<path d="M28 36 Q17 13 32 11 Q42 26 39 40Z" fill="${accent}"/><path d="M72 36 Q83 13 68 11 Q58 26 61 40Z" fill="${accent}"/>`,
+    `<path d="M50 31 Q35 14 50 8 Q65 14 50 31Z" fill="${accent}"/>`,
+    `<path d="M50 17 L56 31 L44 31Z" fill="${accent}"/><path d="M30 35 Q18 14 32 12 Q42 26 40 39Z" fill="${dark}"/><path d="M70 35 Q82 14 68 12 Q58 26 60 39Z" fill="${dark}"/>`,
+    `<path d="M25 49 Q8 32 17 18 Q34 31 38 49Z" fill="${accent}" opacity=".82"/><path d="M75 49 Q92 32 83 18 Q66 31 62 49Z" fill="${accent}" opacity=".82"/>`,
+    `<path d="M30 32 L25 12 L42 26 M70 32 L75 12 L58 26" fill="${accent}"/>`,
+    `<path d="M30 29 L36 10 L48 23 L59 8 L70 29Z" fill="${accent}" stroke="#fff" stroke-width="1.5"/>`
+  ][level];
+  const id=level*3+stage;
+  const badge=Array.from({length:stage+1},(_,i)=>`<circle cx="${46+i*5-stage*2.5}" cy="76" r="2.2" fill="${accent}" opacity=".95"/>`).join('');
+  switch(id){
+    case 0: return `<ellipse cx="50" cy="66" rx="34" ry="20" fill="${dark}"/><ellipse cx="50" cy="53" rx="28" ry="25" fill="${main}"/><circle cx="30" cy="68" r="7" fill="${main}" opacity=".7"/><circle cx="70" cy="68" r="7" fill="${main}" opacity=".7"/>${mark}${eyes(47,6)}${smile}${badge}`;
+    case 1: return `<path d="M18 53 Q13 31 35 42 Q50 25 65 42 Q87 31 82 53 Q68 49 61 61 Q50 53 39 61 Q32 49 18 53Z" fill="${dark}"/><ellipse cx="50" cy="55" rx="22" ry="22" fill="${main}"/>${mark}${eyes(49,6)}${angry}${badge}`;
+    case 2: return `<path d="M50 16 L62 39 L86 42 L67 58 L73 82 L50 69 L27 82 L33 58 L14 42 L38 39Z" fill="${dark}"/><circle cx="50" cy="50" r="24" fill="${main}"/>${mark}${eyes(47,6)}${teeth}${badge}`;
+    case 3: return `<path d="M20 75 Q23 38 50 23 Q77 38 80 75 Q66 68 58 80 Q50 69 42 80 Q34 68 20 75Z" fill="${main}" opacity=".88"/>${mark}${eyes(50,7)}<circle cx="50" cy="65" r="6" fill="${dark}"/>${badge}`;
+    case 4: return `<ellipse cx="50" cy="61" rx="30" ry="24" fill="${dark}"/><ellipse cx="50" cy="48" rx="24" ry="23" fill="${main}"/><path d="M29 65 Q16 57 19 46 Q32 51 38 63Z" fill="${accent}" opacity=".75"/><path d="M71 65 Q84 57 81 46 Q68 51 62 63Z" fill="${accent}" opacity=".75"/>${mark}${eyes(46,7)}${smile}${badge}`;
+    case 5: return `<rect x="26" y="38" width="48" height="45" rx="9" fill="${dark}"/><rect x="33" y="26" width="34" height="30" rx="7" fill="${main}"/><rect x="36" y="36" width="28" height="13" rx="3" fill="#102033"/>${mark}${eyes(42,4)}<rect x="43" y="61" width="14" height="4" rx="2" fill="${accent}"/>${badge}`;
+    case 6: return `<path d="M50 13 L61 39 L87 43 L66 57 L72 82 L50 68 L28 82 L34 57 L13 43 L39 39Z" fill="${dark}"/><circle cx="50" cy="50" r="24" fill="${main}"/>${mark}${eyes(47,6)}${smile}${badge}`;
+    case 7: return `<path d="M50 13 Q62 31 74 30 Q66 43 78 57 Q61 57 50 78 Q39 57 22 57 Q34 43 26 30 Q38 31 50 13Z" fill="${dark}"/><circle cx="50" cy="50" r="24" fill="${main}"/>${mark}${eyes(46,7)}${angry}${badge}`;
+    case 8: return `<path d="M24 80 L31 38 L50 18 L69 38 L76 80 Q61 72 50 82 Q39 72 24 80Z" fill="${dark}"/><ellipse cx="50" cy="48" rx="25" ry="23" fill="${main}"/>${mark}${eyes(47,7)}${teeth}${badge}`;
+    case 9: return `<ellipse cx="50" cy="61" rx="31" ry="25" fill="${dark}"/><circle cx="50" cy="43" r="25" fill="${main}"/>${mark}${eyes(42,7)}${teeth}<path d="M33 73 L28 86 M67 73 L72 86" stroke="${dark}" stroke-width="5" stroke-linecap="round"/>${badge}`;
+    case 10: return `<path d="M25 70 Q19 38 36 38 Q40 22 50 20 Q60 22 64 38 Q81 38 75 70 Q62 65 50 72 Q38 65 25 70Z" fill="${dark}"/><ellipse cx="50" cy="49" rx="25" ry="22" fill="${main}"/>${mark}${eyes(47,7)}${angry}${badge}`;
+    case 11: return `<path d="M31 31 Q17 12 30 9 Q42 24 42 38Z" fill="${dark}"/><path d="M69 31 Q83 12 70 9 Q58 24 58 38Z" fill="${dark}"/><ellipse cx="50" cy="60" rx="30" ry="25" fill="${dark}"/><ellipse cx="50" cy="46" rx="25" ry="23" fill="${main}"/>${mark}${eyes(45,7)}${teeth}${badge}`;
+    case 12: return `<path d="M22 62 Q17 44 28 36 Q38 50 43 64Z" fill="${dark}"/><path d="M78 62 Q83 44 72 36 Q62 50 57 64Z" fill="${dark}"/><ellipse cx="50" cy="60" rx="26" ry="23" fill="${dark}"/><ellipse cx="50" cy="47" rx="24" ry="22" fill="${main}"/>${mark}${eyes(45,7)}${smile}${badge}`;
+    case 13: return `<path d="M21 64 Q25 31 50 27 Q75 31 79 64 Q67 85 50 71 Q33 85 21 64Z" fill="${dark}"/><ellipse cx="50" cy="49" rx="26" ry="23" fill="${main}"/>${mark}${eyes(48,6)}${teeth}${badge}`;
+    case 14: return `<ellipse cx="50" cy="61" rx="30" ry="25" fill="${dark}"/><ellipse cx="50" cy="45" rx="25" ry="23" fill="${main}"/><circle cx="28" cy="62" r="8" fill="${accent}"/><circle cx="72" cy="62" r="8" fill="${accent}"/>${mark}${eyes(44,7)}${angry}${badge}`;
+    case 15: return `<path d="M50 10 Q63 24 73 18 Q69 34 80 42 Q63 43 50 36 Q37 43 20 42 Q31 34 27 18 Q37 24 50 10Z" fill="${dark}"/><ellipse cx="50" cy="59" rx="28" ry="24" fill="${dark}"/><circle cx="50" cy="45" r="23" fill="${main}"/>${mark}${eyes(44,6)}${teeth}${badge}`;
+    case 16: return `<path d="M50 8 L61 29 L84 26 L70 44 L83 64 L60 61 L50 82 L40 61 L17 64 L30 44 L16 26 L39 29Z" fill="${dark}"/><circle cx="50" cy="47" r="24" fill="${main}"/>${mark}${eyes(46,7)}${angry}${badge}`;
+    case 17: return `<rect x="24" y="39" width="52" height="45" rx="8" fill="${dark}"/><rect x="31" y="27" width="38" height="29" rx="7" fill="${main}"/><rect x="36" y="37" width="28" height="13" rx="3" fill="#10152a"/>${mark}${eyes(43,4)}<path d="M39 63 H61" stroke="${accent}" stroke-width="4" stroke-linecap="round"/>${badge}`;
+    case 18: return `<path d="M24 58 Q14 45 22 34 Q34 45 37 59Z" fill="${dark}"/><path d="M76 58 Q86 45 78 34 Q66 45 63 59Z" fill="${dark}"/><ellipse cx="50" cy="61" rx="31" ry="25" fill="${dark}"/><circle cx="50" cy="45" r="25" fill="${main}"/>${mark}${eyes(44,7)}${smile}${badge}`;
+    case 19: return `<ellipse cx="50" cy="61" rx="29" ry="25" fill="${dark}"/><ellipse cx="50" cy="45" rx="25" ry="23" fill="${main}"/><circle cx="27" cy="63" r="9" fill="${accent}" opacity=".85"/><circle cx="73" cy="63" r="9" fill="${accent}" opacity=".85"/>${mark}${eyes(44,7)}${teeth}${badge}`;
+    default: return `<path d="M50 7 L61 27 L84 24 L70 43 L87 57 L64 60 L62 83 L50 68 L38 83 L36 60 L13 57 L30 43 L16 24 L39 27Z" fill="${dark}"/><circle cx="50" cy="47" r="26" fill="${main}"/>${mark}${eyes(46,7)}${angry}${badge}`;
+  }
+}
+function drawEnemy(level,stateStage=0){
+  const svg=document.getElementById('enemy-svg');
+  const stage=Math.max(0,Math.min(STAGES-1,stateStage||0));
+  svg.innerHTML=buildEnemyCharacter(level,stage);
+  svg.setAttribute('data-enemy-id',`${level}-${stage}`);
+  svg.setAttribute('aria-label',`${LEVEL_NAMES[level]} stage ${stage+1} enemy`);
+}
+
+document.getElementById('answer-input').addEventListener('keydown',e=>{if(e.key==='Enter')submitAnswer();});
+window.addEventListener('resize',()=>{if(bgAnim)initBg((state.level*STAGES+state.stage)%STAGE_THEMES.length);});
+selectLevel(0);
+selectMode('jp2en');
+selectTimeLimit(5);
+selectQuizType('input');
+initBg(0);
+</script>
