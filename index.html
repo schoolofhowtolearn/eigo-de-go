@@ -41,8 +41,8 @@ body{font-family:'Nunito',sans-serif;color:var(--c-text);min-height:100vh;overfl
 .hud{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
 .hud-score{font-family:'Fredoka One',cursive;font-size:28px;color:var(--c-gold);flex:1;min-width:80px}
 .hud-lives{display:flex;gap:4px;align-items:center}
-.heart{font-size:20px;transition:transform .2s}
-.heart.lost{filter:grayscale(1);opacity:.3}
+.heart{font-size:30px;line-height:1;color:#ff2f45;text-shadow:0 0 10px rgba(255,47,69,.65);transition:transform .2s}
+.heart.lost{color:#ff2f45;opacity:.28;text-shadow:none}
 .timer-wrap{flex:1;min-width:100px;text-align:right}
 .timer-bar{height:8px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden;margin-top:4px}
 .timer-fill{height:100%;border-radius:4px;transition:width .1s linear,background .3s}
@@ -54,7 +54,7 @@ body{font-family:'Nunito',sans-serif;color:var(--c-text);min-height:100vh;overfl
 
 /* ENEMY */
 .enemy-area{display:flex;justify-content:center;margin-bottom:10px;min-height:90px;align-items:flex-end}
-#enemy-svg{transition:transform .15s;transform-box:view-box;transform-origin:center}
+#enemy-svg{transition:transform .15s}
 #enemy-svg.hit{animation:enemyHit .35s ease}
 #enemy-svg.miss{animation:enemyMock .4s ease}
 @keyframes enemyHit{0%{transform:scale(1)}30%{transform:scale(.85) rotate(-5deg)}70%{transform:scale(1.1)}100%{transform:scale(1)}}
@@ -164,7 +164,7 @@ body{font-family:'Nunito',sans-serif;color:var(--c-text);min-height:100vh;overfl
 .clear-history-btn:hover{background:rgba(244,67,54,.28);border-color:#f44336}
 
 
-.life-recover{animation:lifeRecover .45s ease;color:#4caf50}
+.life-recover{animation:lifeRecover .45s ease;color:#ff2f45}
 @keyframes lifeRecover{0%{transform:scale(.8)}50%{transform:scale(1.35)}100%{transform:scale(1)}}
 
 
@@ -186,26 +186,34 @@ body{font-family:'Nunito',sans-serif;color:var(--c-text);min-height:100vh;overfl
 
 
 .enemy-area{position:relative}
-.damage-pop{position:absolute;left:50%;top:8px;transform:translateX(-50%);font-family:'Fredoka One',cursive;font-size:26px;color:#ffd700;text-shadow:0 2px 0 #8a2500,0 0 10px rgba(255,215,0,.8);pointer-events:none;z-index:5;animation:damagePop .75s ease-out forwards}
-@keyframes damagePop{0%{opacity:0;transform:translate(-50%,10px) scale(.5)}20%{opacity:1;transform:translate(-50%,-8px) scale(1.2)}100%{opacity:0;transform:translate(-50%,-42px) scale(.9)}}
-#enemy-svg.damage{animation:enemyDamage .65s cubic-bezier(.36,.07,.19,.97) both!important}
-@keyframes enemyDamage{0%,100%{transform:translateX(0) rotate(0) scale(1);filter:none}12%{transform:translateX(-18px) rotate(-7deg) scale(.92);filter:brightness(2.5) saturate(2)}25%{transform:translateX(16px) rotate(6deg) scale(1.08);filter:brightness(2.2) saturate(2)}38%{transform:translateX(-13px) rotate(-5deg) scale(.95)}52%{transform:translateX(10px) rotate(4deg) scale(1.04)}68%{transform:translateX(-6px) rotate(-2deg)}84%{transform:translateX(4px) rotate(1deg)}}
+.damage-pop{position:absolute;left:50%;top:0;transform:translateX(-50%);font-family:'Fredoka One',cursive;font-size:30px;color:#ffef5a;text-shadow:0 3px 0 #8a2500,0 0 14px rgba(255,54,54,.9);pointer-events:none;z-index:8;animation:damagePop .85s ease-out forwards}
+@keyframes damagePop{0%{opacity:0;transform:translate(-50%,16px) scale(.45)}16%{opacity:1;transform:translate(-50%,-8px) scale(1.35) rotate(-4deg)}100%{opacity:0;transform:translate(-50%,-50px) scale(.9) rotate(3deg)}}
+#enemy-svg.damage{animation:enemyDamage .72s cubic-bezier(.2,.9,.25,1.15);transform-origin:50% 65%}
+@keyframes enemyDamage{0%{transform:translate(0,0) rotate(0) scale(1);filter:none}9%{transform:translate(-18px,-3px) rotate(-9deg) scale(.9);filter:brightness(2.7) saturate(2.5) hue-rotate(-22deg)}18%{transform:translate(16px,2px) rotate(8deg) scale(1.09);filter:brightness(2.6) saturate(2.2) hue-rotate(-18deg)}30%{transform:translate(-13px,1px) rotate(-7deg) scale(.96);filter:brightness(2) saturate(1.8)}44%{transform:translate(10px,-1px) rotate(5deg) scale(1.04);filter:brightness(1.6) saturate(1.5)}62%{transform:translate(-5px,0) rotate(-2deg) scale(1);filter:none}100%{transform:translate(0,0) rotate(0) scale(1);filter:none}}
 .hit-spark{position:absolute;width:10px;height:10px;border-radius:50%;background:#ffd700;box-shadow:0 0 12px #ffd700;pointer-events:none;z-index:4;animation:sparkBurst .55s ease-out forwards}
 @keyframes sparkBurst{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.2)}}
+.enemy-impact{position:absolute;left:50%;top:39px;width:92px;height:60px;transform:translate(-50%,-50%);pointer-events:none;z-index:7;animation:impactFlash .42s ease-out forwards}
+.enemy-impact::before,.enemy-impact::after{content:'';position:absolute;left:50%;top:50%;width:94px;height:15px;border-radius:999px;background:linear-gradient(90deg,transparent,#fff 15%,#ff3333 50%,#ffd700 82%,transparent);box-shadow:0 0 18px rgba(255,60,40,.95);transform:translate(-50%,-50%) rotate(-24deg)}
+.enemy-impact::after{width:72px;height:10px;transform:translate(-50%,-50%) rotate(28deg);background:linear-gradient(90deg,transparent,#fff 18%,#ff7a00 55%,#ffd700 84%,transparent)}
+@keyframes impactFlash{0%{opacity:0;transform:translate(-50%,-50%) scale(.45) rotate(-8deg)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.24) rotate(3deg)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.7) rotate(10deg)}}
 
 
-.enemy-face-overlay{position:absolute;left:50%;top:26px;transform:translateX(-50%);font-family:'Fredoka One',cursive;font-size:30px;letter-spacing:2px;color:#fff;text-shadow:0 2px 0 #7a1740,0 0 10px rgba(255,255,255,.8);pointer-events:none;z-index:6;animation:painFace .45s ease-out forwards}
-@keyframes painFace{0%{opacity:0;transform:translateX(-50%) scale(.5) rotate(-8deg)}20%{opacity:1;transform:translateX(-50%) scale(1.12) rotate(5deg)}100%{opacity:0;transform:translateX(-50%) scale(.9) rotate(0deg)}}
-#enemy-svg.defeated{animation:enemyDefeated 1.05s ease-in forwards;transform-origin:50% 80%}
-@keyframes enemyDefeated{0%{opacity:1;transform:translateY(0) rotate(0) scale(1);filter:brightness(1)}25%{transform:translateY(-10px) rotate(-8deg) scale(1.05);filter:brightness(2)}55%{opacity:1;transform:translateY(18px) rotate(18deg) scale(.9);filter:brightness(.8)}100%{opacity:0;transform:translateY(70px) rotate(55deg) scale(.45);filter:brightness(.4) blur(2px)}}
-.defeat-burst{position:absolute;left:50%;top:42px;transform:translate(-50%,-50%);font-family:'Fredoka One',cursive;font-size:34px;color:#ffd700;text-shadow:0 2px 0 #8a2500,0 0 16px rgba(255,215,0,.9);pointer-events:none;z-index:7;animation:defeatBurst .95s ease-out forwards}
-@keyframes defeatBurst{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}25%{opacity:1;transform:translate(-50%,-70%) scale(1.25)}100%{opacity:0;transform:translate(-50%,-120%) scale(.8)}}
+.enemy-face-overlay{position:absolute;left:50%;top:22px;transform:translateX(-50%);font-family:'Fredoka One',cursive;font-size:34px;letter-spacing:2px;color:#fff;text-shadow:0 3px 0 #7a1740,0 0 12px rgba(255,255,255,.9);pointer-events:none;z-index:9;animation:painFace .55s ease-out forwards}
+@keyframes painFace{0%{opacity:0;transform:translateX(-50%) scale(.45) rotate(-12deg)}20%{opacity:1;transform:translateX(-50%) scale(1.2) rotate(7deg)}100%{opacity:0;transform:translateX(-50%) scale(.88) rotate(0deg)}}
+#enemy-svg.defeated{animation:enemyDefeated 1.18s ease-in forwards;transform-origin:50% 86%}
+@keyframes enemyDefeated{0%{opacity:1;transform:translateY(0) rotate(0) scale(1);filter:brightness(1)}16%{transform:translateY(-14px) rotate(-13deg) scale(1.12);filter:brightness(2.5) saturate(1.8)}38%{opacity:1;transform:translateY(14px) rotate(20deg) scale(.94);filter:brightness(.9) saturate(.75)}68%{opacity:.9;transform:translateY(42px) rotate(78deg) scale(.78);filter:brightness(.58) saturate(.45)}100%{opacity:0;transform:translateY(72px) rotate(94deg) scale(.48);filter:brightness(.35) blur(2px) saturate(.25)}}
+.defeat-burst{position:absolute;left:50%;top:34px;transform:translate(-50%,-50%);font-family:'Fredoka One',cursive;font-size:36px;color:#ffd700;text-shadow:0 3px 0 #8a2500,0 0 18px rgba(255,215,0,.95);pointer-events:none;z-index:10;animation:defeatBurst 1.05s ease-out forwards}
+@keyframes defeatBurst{0%{opacity:0;transform:translate(-50%,-50%) scale(.28) rotate(-10deg)}22%{opacity:1;transform:translate(-50%,-78%) scale(1.24) rotate(4deg)}100%{opacity:0;transform:translate(-50%,-136%) scale(.82) rotate(0)}}
+.defeat-shadow{position:absolute;left:50%;bottom:2px;width:110px;height:20px;border-radius:50%;background:radial-gradient(ellipse,rgba(0,0,0,.42),rgba(0,0,0,0) 68%);transform:translateX(-50%) scale(.4);pointer-events:none;z-index:2;animation:defeatShadow 1.05s ease-out forwards}
+@keyframes defeatShadow{0%{opacity:0;transform:translateX(-50%) scale(.25)}28%{opacity:.65;transform:translateX(-50%) scale(1.06)}100%{opacity:0;transform:translateX(-50%) scale(1.35)}}
+.defeat-smoke{position:absolute;left:50%;bottom:8px;width:18px;height:18px;border-radius:50%;background:rgba(210,210,230,.78);box-shadow:0 0 16px rgba(255,255,255,.55);pointer-events:none;z-index:3;animation:defeatSmoke .95s ease-out forwards}
+@keyframes defeatSmoke{0%{opacity:0;transform:translate(-50%,0) scale(.25)}25%{opacity:.82}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),var(--dy)) scale(2.2)}}
 
-.quick-bonus-burst{position:fixed;left:50%;top:64%;transform:translate(-50%,-50%);z-index:90;pointer-events:none;text-align:center;font-family:'Fredoka One',cursive;animation:quickBonusBurst 1.05s ease-out forwards;filter:drop-shadow(0 0 18px rgba(255,215,0,.85))}
-.quick-bonus-ring{position:absolute;left:50%;top:50%;width:180px;height:180px;border:6px solid rgba(255,215,0,.85);border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 26px rgba(255,215,0,.9),inset 0 0 20px rgba(255,255,255,.45);animation:quickBonusRing 1.05s ease-out forwards}
-.quick-bonus-main{position:relative;padding:13px 18px;border-radius:14px;background:linear-gradient(135deg,#fff7a8,#ffd700 45%,#ff7a00);color:#2b1600;font-size:32px;line-height:1;text-shadow:0 2px 0 rgba(255,255,255,.7);border:2px solid #fff;box-shadow:0 10px 26px rgba(255,122,0,.45)}
-.quick-bonus-sub{position:relative;margin-top:6px;font-size:22px;color:#fff;text-shadow:0 2px 0 #8a2500,0 0 12px rgba(255,215,0,.95)}
-.quick-bonus-spark{position:fixed;left:50%;top:64%;width:12px;height:12px;border-radius:50%;background:#fff7a8;box-shadow:0 0 14px #ffd700;z-index:89;pointer-events:none;animation:quickBonusSpark .85s ease-out forwards}
+.quick-bonus-burst{position:fixed;left:50%;top:72%;transform:translate(-50%,-50%);z-index:90;pointer-events:none;text-align:center;font-family:'Fredoka One',cursive;animation:quickBonusBurst 1.05s ease-out forwards;filter:drop-shadow(0 0 18px rgba(255,215,0,.85))}
+.quick-bonus-ring{position:absolute;left:50%;top:50%;width:230px;height:230px;border:8px solid rgba(255,215,0,.85);border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 34px rgba(255,215,0,.9),inset 0 0 26px rgba(255,255,255,.45);animation:quickBonusRing 1.05s ease-out forwards}
+.quick-bonus-main{position:relative;padding:18px 24px;border-radius:18px;background:linear-gradient(135deg,#fff7a8,#ffd700 45%,#ff7a00);color:#2b1600;font-size:42px;line-height:1;text-shadow:0 2px 0 rgba(255,255,255,.7);border:3px solid #fff;box-shadow:0 14px 35px rgba(255,122,0,.45)}
+.quick-bonus-sub{position:relative;margin-top:8px;font-size:30px;color:#fff;text-shadow:0 3px 0 #8a2500,0 0 16px rgba(255,215,0,.95)}
+.quick-bonus-spark{position:fixed;left:50%;top:72%;width:12px;height:12px;border-radius:50%;background:#fff7a8;box-shadow:0 0 14px #ffd700;z-index:89;pointer-events:none;animation:quickBonusSpark .85s ease-out forwards}
 .hud-score.quick-bonus-score{animation:quickBonusScore .75s ease;color:#fff7a8;text-shadow:0 0 18px #ffd700,0 0 28px #ff7a00}
 @keyframes quickBonusBurst{0%{opacity:0;transform:translate(-50%,-50%) scale(.35) rotate(-8deg)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.18) rotate(4deg)}42%{transform:translate(-50%,-50%) scale(.98) rotate(-2deg)}76%{opacity:1;transform:translate(-50%,-56%) scale(1.04) rotate(0)}100%{opacity:0;transform:translate(-50%,-70%) scale(.82) rotate(0)}}
 @keyframes quickBonusRing{0%{opacity:0;transform:translate(-50%,-50%) scale(.25)}22%{opacity:1;transform:translate(-50%,-50%) scale(.82)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.65)}}
@@ -250,9 +258,9 @@ body{font-family:'Nunito',sans-serif;color:var(--c-text);min-height:100vh;overfl
 
       <div class="time-settings-title">制限時間を選ぶ</div>
       <div class="time-options">
-        <button class="time-card selected" onclick="selectTimeLimit(15)">15秒</button>
-        <button class="time-card" onclick="selectTimeLimit(25)">25秒</button>
-        <button class="time-card" onclick="selectTimeLimit(35)">35秒</button>
+        <button class="time-card selected" onclick="selectTimeLimit(5)">5秒</button>
+        <button class="time-card" onclick="selectTimeLimit(10)">10秒</button>
+        <button class="time-card" onclick="selectTimeLimit(15)">15秒</button>
       </div>
     </div>
 
@@ -330,7 +338,7 @@ body{font-family:'Nunito',sans-serif;color:var(--c-text);min-height:100vh;overfl
       </div>
       <div class="hud-lives" id="lives-display"></div>
       <div class="timer-wrap">
-        <div class="timer-num"><span id="timer-val">15</span>秒</div>
+        <div class="timer-num"><span id="timer-val">5</span>秒</div>
         <div class="timer-bar"><div class="timer-fill" id="timer-fill" style="width:100%;background:var(--c-green)"></div></div>
       </div>
       <button class="retire-btn" onclick="showRetireModal()">リタイア</button>
@@ -378,7 +386,7 @@ body{font-family:'Nunito',sans-serif;color:var(--c-text);min-height:100vh;overfl
         <div class="stat-box"><div class="stat-val" id="r-correct">0</div><div class="stat-lbl">正解数</div></div>
         <div class="stat-box"><div class="stat-val" id="r-combo">0</div><div class="stat-lbl">最大コンボ</div></div>
       </div>
-      <button class="review-btn" onclick="showReview()">間違えた単語を振り返る</button>
+      <button class="review-btn" onclick="showReview()">取り組んだ単語をすべて振り返る</button>
       <button class="history-btn" onclick="showScoreHistory()">リザルトから過去のスコアを見る</button>
       <div class="result-btns">
         <button class="retry-btn" onclick="retryGame()">もう一度</button>
@@ -389,11 +397,11 @@ body{font-family:'Nunito',sans-serif;color:var(--c-text);min-height:100vh;overfl
 
   <div id="screen-review" class="screen">
     <div class="result-wrap card" style="padding:24px">
-      <div class="result-title">間違えた単語の振り返り</div>
-      <div class="result-sub">クリアしたステージを含め、出題された単語をすべて表示します</div>
+      <div class="result-title">取り組んだ単語の振り返り</div>
+      <div class="result-sub">正解した単語は薄く表示しています。すべての問題を確認しよう</div>
       <div id="review-list" class="review-list"></div>
       <div class="result-btns">
-        <button class="retry-btn" onclick="retryWrongWords()">この単語だけ練習</button>
+        <button class="retry-btn" onclick="retryWrongWords()">間違えた単語を復習</button>
         <button class="menu-btn" onclick="show('screen-result')">戻る</button>
       </div>
     </div>
@@ -1134,10 +1142,9 @@ applyEikenWebWords();
 const Q_PER_STAGE=10;
 const STAGES=3;
 
-let state={level:0,stage:0,qIndex:0,score:0,lives:3,combo:0,maxCombo:0,correct:0,hintUsed:false,timer:null,selectedTime:15,timeLeft:15,pool:[],stageQ:[],reviewWords:[],wrongWords:[],attemptedWords:[],reviewMode:false,scoreSaved:false,mode:'jp2en',quizType:'input',customWordsAll:[],wordOrder:'random',answered:false,questionStartedAt:0};
+let state={level:0,stage:0,qIndex:0,score:0,lives:3,combo:0,maxCombo:0,correct:0,hintUsed:false,timer:null,selectedTime:5,timeLeft:5,pool:[],stageQ:[],wrongWords:[],attemptedWords:[],reviewMode:false,scoreSaved:false,mode:'jp2en',quizType:'input',customWordsAll:[],wordOrder:'random',answered:false,questionStartedAt:0};
 let audioCtx=null;
 let battleBgmTimer=null;
-let menuBgmTimer=null;
 
 /* ============ AUDIO ============ */
 function getAudio(){
@@ -1167,26 +1174,6 @@ function playNoise(start,duration,volume=.12,filterType='highpass',filterFreq=12
   noise.buffer=buffer;noise.connect(filter);filter.connect(g);g.connect(ctx.destination);
   noise.start(start);noise.stop(start+duration+.02);
 }
-function startMenuBgm(){
-  if(menuBgmTimer||!document.getElementById('screen-title').classList.contains('active'))return;
-  try{
-    const melody=[523,659,784,880,784,659,587,698,880,1047,880,698,659,587,523,659];
-    const bass=[131,165,196,165,147,175,220,196];
-    let step=0;
-    const tick=()=>{
-      const now=getAudio().currentTime;
-      playTone(melody[step%melody.length],now,.13,'triangle',.038);
-      if(step%2===0)playTone(bass[Math.floor(step/2)%bass.length],now,.25,'sine',.04);
-      if(step%4===2)playNoise(now,.025,.018,'highpass',5000);
-      step++;
-    };
-    tick();
-    menuBgmTimer=setInterval(tick,190);
-  }catch(e){}
-}
-function stopMenuBgm(){
-  if(menuBgmTimer){clearInterval(menuBgmTimer);menuBgmTimer=null;}
-}
 const LEVEL_BGM=[
   {bass:[131,165,196,165],lead:[523,659,784,659,587,698,784,880],tempo:230,bassWave:'triangle',leadWave:'sine'},
   {bass:[110,147,165,147],lead:[440,523,659,523,494,587,698,587],tempo:205,bassWave:'square',leadWave:'triangle'},
@@ -1198,7 +1185,6 @@ const LEVEL_BGM=[
 ];
 function startBattleBgm(){
   if(battleBgmTimer)return;
-  stopMenuBgm();
   try{
     const song=LEVEL_BGM[state.level]||LEVEL_BGM[0];
     const bass=song.bass;
@@ -1320,21 +1306,6 @@ function playGameClear(){
       playTone(f,now+i*.12,.28,'sine',.22);
       if(i>=3)playTone(f/2,now+i*.12,.35,'triangle',.08);
     });
-  }catch(e){}
-}
-function playGameOver(){
-  try{
-    const ctx=getAudio();
-    const now=ctx.currentTime;
-    const melody=[
-      [392,.00,.22],[330,.20,.22],[262,.40,.28],[196,.66,.34],[131,.96,.65]
-    ];
-    melody.forEach(([freq,delay,duration],i)=>{
-      playTone(freq,now+delay,duration,i<3?'square':'sawtooth',i<3?.12:.16);
-      if(i>=2)playTone(freq/2,now+delay,duration+.12,'triangle',.08);
-    });
-    playNoise(now+.62,.18,.12,'lowpass',520);
-    playNoise(now+.96,.45,.10,'lowpass',260);
   }catch(e){}
 }
 function flashScreen(color){
@@ -1535,19 +1506,81 @@ function buildUniqueEnemy(level,stage){
   const wings=level===1||level===4?`<path d="M30 48 Q9 ${25+stage*4} 13 62 Q23 54 34 65Z" fill="${dark}" opacity=".85"/><path d="M70 48 Q91 ${25+stage*4} 87 62 Q77 54 66 65Z" fill="${dark}" opacity=".85"/>`:'';
   const antenna=level===2?`<path d="M50 31 Q${37+stage*12} 15 50 8" stroke="${dark}" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="50" cy="8" r="5" fill="#ffd95a"/>`:'';
   const armor=level>=5?`<path d="M27 58 L38 48 L50 55 L62 48 L73 58 L68 84 L32 84Z" fill="${dark}" opacity=".88"/><path d="M50 55 V84 M33 66 H67" stroke="${main}" stroke-width="2" opacity=".8"/>`:'';
-  const stageMark=stage===0
-    ?`<circle cx="20" cy="55" r="8" fill="${main}"/><circle cx="80" cy="55" r="8" fill="${main}"/>`
-    :stage===1
-      ?`<path d="M30 34 L34 16 L42 32 L50 13 L58 32 L66 16 L70 34Z" fill="${dark}"/>`
-      :`<ellipse cx="50" cy="17" rx="25" ry="7" fill="none" stroke="#ffd95a" stroke-width="4"/><path d="M75 66 Q94 69 83 86" fill="none" stroke="${dark}" stroke-width="8" stroke-linecap="round"/>`;
   const spots=Array.from({length:stage+1},(_,i)=>`<circle cx="${34+i*16}" cy="${67-(i%2)*8}" r="${3+stage}" fill="#fff" opacity=".24"/>`).join('');
   const mouth=stage===0?'M42 61 Q50 67 58 61':stage===1?'M40 65 Q50 56 60 65':'M39 61 L45 67 L50 61 L55 67 L61 61';
-  return `${wings}${horns}${antenna}${crown}${stageMark}<ellipse cx="50" cy="61" rx="${29+stage*3}" ry="${25+stage*2}" fill="${dark}"/><ellipse cx="50" cy="50" rx="${24+stage}" ry="${23+stage}" fill="${main}"/>${armor}${spots}<circle cx="41" cy="45" r="7" fill="white"/><circle cx="59" cy="45" r="7" fill="white"/><circle cx="${42+stage}" cy="46" r="3.5" fill="${eye}"/><circle cx="${60-stage}" cy="46" r="3.5" fill="${eye}"/><path d="${mouth}" stroke="${eye}" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
+  return `${wings}${horns}${antenna}${crown}<ellipse cx="50" cy="61" rx="${29+stage*3}" ry="${25+stage*2}" fill="${dark}"/><ellipse cx="50" cy="50" rx="${24+stage}" ry="${23+stage}" fill="${main}"/>${armor}${spots}<circle cx="41" cy="45" r="7" fill="white"/><circle cx="59" cy="45" r="7" fill="white"/><circle cx="${42+stage}" cy="46" r="3.5" fill="${eye}"/><circle cx="${60-stage}" cy="46" r="3.5" fill="${eye}"/><path d="${mouth}" stroke="${eye}" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
 }
 function drawEnemy(level,stateStage=0){
   const svg=document.getElementById('enemy-svg');
   svg.innerHTML=buildUniqueEnemy(level,stateStage);
   svg.setAttribute('aria-label',`${LEVEL_NAMES[level]} ステージ${stateStage+1}の敵`);
+}
+
+function buildUniqueEnemy(level,stage){
+  const palettes=[
+    ['#38b86b','#1f7545','#ffd95a'],['#4bb8d8','#26718b','#7fffd4'],
+    ['#8b6bd8','#513a9a','#ff8ad8'],['#e5a63b','#9a641d','#ff9f43'],
+    ['#e35b4f','#932d2a','#8eff6f'],['#ba4fd3','#702486','#c8a6ff'],
+    ['#4d4b70','#201e3c','#ff4f6d']
+  ];
+  const [main,dark,accent]=palettes[level];
+  const eye=level<2?'#173b2b':level<4?'#412060':level<6?'#ffcf33':'#ff365e';
+  const eyes=(y=45,r=7)=>`<circle cx="41" cy="${y}" r="${r}" fill="white"/><circle cx="59" cy="${y}" r="${r}" fill="white"/><circle cx="42" cy="${y+1}" r="${Math.max(2,r*.48)}" fill="${eye}"/><circle cx="60" cy="${y+1}" r="${Math.max(2,r*.48)}" fill="${eye}"/>`;
+  const mouth=[
+    `<path d="M40 62 Q50 70 60 62" stroke="${eye}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`,
+    `<path d="M39 64 Q50 56 61 64" stroke="${eye}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`,
+    `<path d="M38 62 L44 57 L50 64 L56 57 L62 62" stroke="${eye}" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`
+  ][stage];
+  const levelMarks=[
+    `<circle cx="50" cy="26" r="5" fill="${accent}"/><path d="M43 30 Q50 19 57 30" stroke="${accent}" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+    `<path d="M31 37 Q18 19 27 12 Q39 25 39 40Z" fill="${accent}"/><path d="M69 37 Q82 19 73 12 Q61 25 61 40Z" fill="${accent}"/>`,
+    `<path d="M50 31 Q35 14 50 8 Q65 14 50 31Z" fill="${accent}"/><circle cx="50" cy="9" r="4" fill="#fff" opacity=".85"/>`,
+    `<path d="M28 36 Q17 14 32 12 Q42 26 40 39Z" fill="${dark}"/><path d="M72 36 Q83 14 68 12 Q58 26 60 39Z" fill="${dark}"/><path d="M50 17 L56 31 L44 31Z" fill="${accent}"/>`,
+    `<path d="M26 49 Q8 32 17 18 Q34 31 38 49Z" fill="${accent}" opacity=".8"/><path d="M74 49 Q92 32 83 18 Q66 31 62 49Z" fill="${accent}" opacity=".8"/>`,
+    `<path d="M30 32 L25 12 L42 26 M70 32 L75 12 L58 26" fill="${accent}"/><path d="M34 70 H66" stroke="${accent}" stroke-width="5" stroke-linecap="round"/>`,
+    `<path d="M30 29 L36 10 L48 23 L59 8 L70 29Z" fill="${accent}" stroke="#fff" stroke-width="1.5"/><circle cx="50" cy="18" r="4" fill="#fff"/>`
+  ][level];
+  if(stage===0){
+    const extras=[
+      `<circle cx="30" cy="68" r="7" fill="${main}" opacity=".65"/><circle cx="70" cy="68" r="7" fill="${main}" opacity=".65"/>`,
+      `<path d="M29 65 Q16 57 19 46 Q32 51 38 63Z" fill="${accent}" opacity=".75"/><path d="M71 65 Q84 57 81 46 Q68 51 62 63Z" fill="${accent}" opacity=".75"/>`,
+      `<circle cx="28" cy="62" r="8" fill="${accent}" opacity=".75"/><circle cx="72" cy="62" r="8" fill="${accent}" opacity=".75"/>`,
+      `<path d="M33 73 L28 86 M67 73 L72 86" stroke="${dark}" stroke-width="5" stroke-linecap="round"/>`,
+      `<path d="M35 70 Q50 82 65 70" stroke="${accent}" stroke-width="4" fill="none" stroke-linecap="round"/>`,
+      `<rect x="36" y="70" width="28" height="10" rx="4" fill="${accent}" opacity=".65"/>`,
+      `<path d="M24 58 Q14 45 22 34 Q34 45 37 59Z" fill="${dark}"/><path d="M76 58 Q86 45 78 34 Q66 45 63 59Z" fill="${dark}"/>`
+    ][level];
+    return `<ellipse cx="50" cy="66" rx="${32+level%3}" ry="20" fill="${dark}"/><ellipse cx="50" cy="52" rx="${25+level%2}" ry="24" fill="${main}"/>${levelMarks}${extras}${eyes(47,6)}${mouth}`;
+  }
+  if(stage===1){
+    const silhouettes=[
+      `<path d="M18 53 Q13 31 35 42 Q50 25 65 42 Q87 31 82 53 Q68 49 61 61 Q50 53 39 61 Q32 49 18 53Z" fill="${dark}"/>`,
+      `<path d="M20 75 Q23 38 50 23 Q77 38 80 75 Q66 68 58 80 Q50 69 42 80 Q34 68 20 75Z" fill="${dark}" opacity=".92"/>`,
+      `<path d="M50 13 L61 39 L87 43 L66 57 L72 82 L50 68 L28 82 L34 57 L13 43 L39 39Z" fill="${dark}"/>`,
+      `<path d="M25 70 Q19 38 36 38 Q40 22 50 20 Q60 22 64 38 Q81 38 75 70 Q62 65 50 72 Q38 65 25 70Z" fill="${dark}"/>`,
+      `<path d="M22 62 Q17 44 28 36 Q38 50 43 64Z" fill="${dark}"/><path d="M78 62 Q83 44 72 36 Q62 50 57 64Z" fill="${dark}"/><ellipse cx="50" cy="60" rx="25" ry="23" fill="${dark}"/>`,
+      `<path d="M50 10 Q63 24 73 18 Q69 34 80 42 Q63 43 50 36 Q37 43 20 42 Q31 34 27 18 Q37 24 50 10Z" fill="${dark}"/>`,
+      `<path d="M50 8 L61 29 L84 26 L70 44 L83 64 L60 61 L50 82 L40 61 L17 64 L30 44 L16 26 L39 29Z" fill="${dark}"/>`
+    ][level];
+    return `${silhouettes}<ellipse cx="50" cy="51" rx="24" ry="22" fill="${main}"/>${levelMarks}${eyes(48,6)}${mouth}`;
+  }
+  const bossShapes=[
+    `<path d="M50 17 L62 39 L86 42 L67 58 L73 82 L50 69 L27 82 L33 58 L14 42 L38 39Z" fill="${dark}"/>`,
+    `<rect x="26" y="37" width="48" height="47" rx="9" fill="${dark}"/><rect x="33" y="25" width="34" height="31" rx="7" fill="${main}"/>`,
+    `<path d="M24 80 L31 38 L50 18 L69 38 L76 80 Q61 72 50 82 Q39 72 24 80Z" fill="${dark}"/>`,
+    `<ellipse cx="50" cy="61" rx="31" ry="25" fill="${dark}"/><circle cx="50" cy="43" r="25" fill="${main}"/><path d="M30 34 Q18 14 32 11 Q42 26 40 39Z" fill="${dark}"/><path d="M70 34 Q82 14 68 11 Q58 26 60 39Z" fill="${dark}"/>`,
+    `<path d="M31 31 Q17 12 30 9 Q42 24 42 38Z" fill="${dark}"/><path d="M69 31 Q83 12 70 9 Q58 24 58 38Z" fill="${dark}"/><ellipse cx="50" cy="60" rx="30" ry="25" fill="${dark}"/>`,
+    `<rect x="24" y="39" width="52" height="45" rx="8" fill="${dark}"/><rect x="31" y="27" width="38" height="29" rx="7" fill="${main}"/><circle cx="50" cy="20" r="5" fill="${accent}"/>`,
+    `<path d="M50 7 L61 27 L84 24 L70 43 L87 57 L64 60 L62 83 L50 68 L38 83 L36 60 L13 57 L30 43 L16 24 L39 27Z" fill="${dark}"/>`
+  ][level];
+  const face=level===1||level===5?`<rect x="36" y="37" width="28" height="14" rx="3" fill="#10152a"/>${eyes(44,4)}`:`<ellipse cx="50" cy="47" rx="25" ry="23" fill="${main}"/>${eyes(45,7)}`;
+  return `${bossShapes}${levelMarks}${face}${mouth}<circle cx="29" cy="65" r="7" fill="${accent}" opacity=".7"/><circle cx="71" cy="65" r="7" fill="${accent}" opacity=".7"/>`;
+}
+
+function drawEnemy(level,stateStage=0){
+  const svg=document.getElementById('enemy-svg');
+  svg.innerHTML=buildUniqueEnemy(level,stateStage);
+  svg.setAttribute('aria-label',`${LEVEL_NAMES[level]} stage ${stateStage+1} enemy`);
 }
 
 
@@ -1594,17 +1627,9 @@ function showDefeatAnimation(callback){
 function showDamageEffect(points){
   const area=document.querySelector('.enemy-area');
   const enemy=document.getElementById('enemy-svg');
-  enemy.getAnimations().forEach(animation=>animation.cancel());
-  enemy.animate([
-    {transform:'translateX(0) rotate(0) scale(1)',filter:'none'},
-    {transform:'translateX(-18px) rotate(-7deg) scale(.92)',filter:'brightness(2.5) saturate(2)',offset:.12},
-    {transform:'translateX(16px) rotate(6deg) scale(1.08)',filter:'brightness(2.2) saturate(2)',offset:.25},
-    {transform:'translateX(-13px) rotate(-5deg) scale(.95)',offset:.38},
-    {transform:'translateX(10px) rotate(4deg) scale(1.04)',offset:.52},
-    {transform:'translateX(-6px) rotate(-2deg)',offset:.68},
-    {transform:'translateX(4px) rotate(1deg)',offset:.84},
-    {transform:'translateX(0) rotate(0) scale(1)',filter:'none'}
-  ],{duration:650,easing:'cubic-bezier(.36,.07,.19,.97)'});
+  enemy.classList.remove('damage');
+  void enemy.offsetWidth;
+  enemy.classList.add('damage');
 
   const dmg=document.createElement('div');
   dmg.className='damage-pop';
@@ -1622,6 +1647,100 @@ function showDamageEffect(points){
     area.appendChild(s);
     setTimeout(()=>s.remove(),600);
   }
+}
+
+function showPainFace(){
+  const area=document.querySelector('.enemy-area');
+  const face=document.createElement('div');
+  face.className='enemy-face-overlay';
+  face.textContent='><';
+  area.appendChild(face);
+  setTimeout(()=>face.remove(),560);
+}
+
+function showDefeatAnimation(callback){
+  const area=document.querySelector('.enemy-area');
+  const enemy=document.getElementById('enemy-svg');
+  clearInterval(state.timer);
+  document.querySelectorAll('.defeat-burst,.defeat-shadow,.defeat-smoke,.enemy-impact,.enemy-face-overlay').forEach(el=>el.remove());
+  enemy.classList.remove('damage','hit','defeated');
+  void enemy.offsetWidth;
+  enemy.classList.add('defeated');
+
+  const shadow=document.createElement('div');
+  shadow.className='defeat-shadow';
+  area.appendChild(shadow);
+
+  const burst=document.createElement('div');
+  burst.className='defeat-burst';
+  burst.textContent='DOWN!';
+  area.appendChild(burst);
+
+  const dizzy=document.createElement('div');
+  dizzy.className='enemy-face-overlay';
+  dizzy.textContent='xx';
+  area.appendChild(dizzy);
+
+  for(let i=0;i<22;i++){
+    const s=document.createElement('span');
+    s.className='hit-spark';
+    s.style.left=(43+Math.random()*14)+'%';
+    s.style.top=(28+Math.random()*32)+'px';
+    s.style.setProperty('--dx',((Math.random()-.5)*150)+'px');
+    s.style.setProperty('--dy',((Math.random()-.75)*125)+'px');
+    area.appendChild(s);
+    setTimeout(()=>s.remove(),760);
+  }
+
+  for(let i=0;i<9;i++){
+    const smoke=document.createElement('span');
+    smoke.className='defeat-smoke';
+    smoke.style.setProperty('--dx',((Math.random()-.5)*95)+'px');
+    smoke.style.setProperty('--dy',(-18-Math.random()*56)+'px');
+    area.appendChild(smoke);
+    setTimeout(()=>smoke.remove(),1000);
+  }
+
+  setTimeout(()=>{
+    burst.remove();
+    shadow.remove();
+    dizzy.remove();
+    enemy.classList.remove('defeated');
+    if(callback)callback();
+  },1180);
+}
+
+function showDamageEffect(points){
+  const area=document.querySelector('.enemy-area');
+  const enemy=document.getElementById('enemy-svg');
+  document.querySelectorAll('.enemy-impact,.enemy-face-overlay').forEach(el=>el.remove());
+  enemy.classList.remove('damage','hit');
+  void enemy.offsetWidth;
+  enemy.classList.add('damage');
+  setTimeout(()=>enemy.classList.remove('damage'),760);
+
+  const impact=document.createElement('div');
+  impact.className='enemy-impact';
+  area.appendChild(impact);
+  setTimeout(()=>impact.remove(),450);
+
+  const dmg=document.createElement('div');
+  dmg.className='damage-pop';
+  dmg.textContent='-'+Math.max(1,Math.floor(points/5));
+  area.appendChild(dmg);
+  setTimeout(()=>dmg.remove(),850);
+
+  for(let i=0;i<16;i++){
+    const s=document.createElement('span');
+    s.className='hit-spark';
+    s.style.left=(45+Math.random()*12)+'%';
+    s.style.top=(30+Math.random()*26)+'px';
+    s.style.setProperty('--dx',((Math.random()-.5)*120)+'px');
+    s.style.setProperty('--dy',((Math.random()-.8)*92)+'px');
+    area.appendChild(s);
+    setTimeout(()=>s.remove(),650);
+  }
+  showPainFace();
 }
 
 function showQuickBonusEffect(points){
@@ -1833,7 +1952,7 @@ function selectLevel(n){
   document.querySelectorAll('.level-card').forEach((c,i)=>c.classList.toggle('selected',i===n));
 }
 function startGame(){
-  state.stage=0;state.score=0;state.lives=3;state.combo=0;state.maxCombo=0;state.correct=0;state.wrongWords=[];state.attemptedWords=[];state.reviewWords=[];state.reviewMode=false;state.scoreSaved=false;
+  state.stage=0;state.score=0;state.lives=3;state.combo=0;state.maxCombo=0;state.correct=0;state.wrongWords=[];state.attemptedWords=[];state.reviewMode=false;state.scoreSaved=false;
   applyWordSettings();
   const baseWords=WORDS[LEVEL_KEYS[state.level]];
   state.pool=state.wordOrder==='ordered'?[...baseWords]:shuffle(baseWords);
@@ -1847,9 +1966,6 @@ function loadStage(){
   drawEnemy(state.level,state.stage);
   const offset=(state.stage*Q_PER_STAGE)%state.pool.length;
   state.stageQ=(state.wordOrder==='ordered'?state.pool.slice(offset,offset+Q_PER_STAGE):shuffle(state.pool.slice(offset)).slice(0,Q_PER_STAGE));
-  if(!state.reviewMode){
-    state.reviewWords.push(...state.stageQ.map(word=>({...word,stage:state.stage+1})));
-  }
   state.qIndex=0;
   loadQuestion();
 }
@@ -1917,7 +2033,7 @@ function submitAnswer(){
 }
 function recordAttempt(type,isCorrect){
   const word=state.stageQ[state.qIndex];
-  state.attemptedWords.push({...word,type,isCorrect,stage:state.stage+1});
+  state.attemptedWords.push({...word,type,isCorrect});
   if(!isCorrect)state.wrongWords.push({...word,type});
 }
 function onCorrect(){
@@ -1947,6 +2063,7 @@ function onCorrect(){
   fb.textContent=state.combo>=2?`✓ 正解！ ${state.combo}コンボ${multText}${quickText} ＋${pts}pt${recovered?' ｜ ライフ回復！':''}`:`✓ 正解！${quickText} ＋${pts}pt`;
   fb.className='feedback ok';
   document.getElementById('combo-disp').textContent=state.combo>=2?`🔥 ${state.combo} COMBO!${recovered?' ❤ +1':''}`:'';
+  animateEnemy('hit');
   showDamageEffect(pts);
   if(quickChoiceBonus)showQuickBonusEffect(pts);
   showPainFace();
@@ -2016,7 +2133,7 @@ function gameOver(){endGame(false);}
 function endGame(win){
   clearInterval(state.timer);
   stopBattleBgm();
-  if(win)playGameClear();else playGameOver();
+  if(win)playGameClear();
   document.getElementById('result-grade').textContent=win?(state.score>500?'🏆':'🥇'):(state.correct>15?'💪':'😢');
   document.getElementById('result-title').textContent=win?'ゲームクリア！':'ゲームオーバー';
   document.getElementById('result-sub').textContent=win
@@ -2094,21 +2211,15 @@ function clearScoreHistory(){
 
 function showReview(){
   const list=document.getElementById('review-list');
-  const attemptsByWord=new Map();
-  state.attemptedWords.forEach(attempt=>attemptsByWord.set(attempt.stage+'|'+attempt.j+'|'+attempt.e,attempt));
-  const reviewItems=state.reviewWords.map(word=>{
-    const attempt=attemptsByWord.get(word.stage+'|'+word.j+'|'+word.e);
-    return attempt?{...word,type:attempt.type,isCorrect:attempt.isCorrect}:{...word,type:'未回答',isCorrect:false};
-  });
-  if(reviewItems.length===0){
+  const attempts=state.attemptedWords;
+  if(attempts.length===0){
     list.innerHTML='<div class="review-empty">まだ振り返る問題がありません。</div>';
   }else{
-    list.innerHTML=reviewItems.map((w,i)=>`
+    list.innerHTML=attempts.map((w,i)=>`
       <div class="review-item${w.isCorrect?' correct-answer':''}">
         <span class="review-status">${w.type}</span>
         <div class="review-j">${i+1}. ${w.j}</div>
         <div class="review-e">${w.e}</div>
-        <div class="review-type">ステージ ${w.stage}</div>
       </div>
     `).join('');
   }
@@ -2136,27 +2247,75 @@ function retryWrongWords(){
 }
 
 function retryGame(){startGame();}
-function goMenu(){stopBattleBgm();show('screen-title');initBg(0);startMenuBgm();}
+function goMenu(){stopBattleBgm();show('screen-title');initBg(0);}
 function show(id){
-  if(id!=='screen-title')stopMenuBgm();
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  if(id==='screen-title'){
-    if(!bgAnim)initBg(0);
-    startMenuBgm();
+  if(id==='screen-title'&&!bgAnim)initBg(0);
+}
+
+/* Final enemy renderer: one explicit character per grade and stage. */
+function buildEnemyCharacter(level,stage){
+  const p=[
+    ['#38b86b','#1f7545','#ffd95a'],['#4bb8d8','#26718b','#7fffd4'],
+    ['#8b6bd8','#513a9a','#ff8ad8'],['#e5a63b','#9a641d','#ff9f43'],
+    ['#e35b4f','#932d2a','#8eff6f'],['#ba4fd3','#702486','#c8a6ff'],
+    ['#4d4b70','#201e3c','#ff4f6d']
+  ][level];
+  const [main,dark,accent]=p;
+  const eye=level<2?'#173b2b':level<4?'#412060':level<6?'#ffcf33':'#ff365e';
+  const eyes=(y=45,r=7)=>`<circle cx="41" cy="${y}" r="${r}" fill="#fff"/><circle cx="59" cy="${y}" r="${r}" fill="#fff"/><circle cx="42" cy="${y+1}" r="${Math.max(2,r*.48)}" fill="${eye}"/><circle cx="60" cy="${y+1}" r="${Math.max(2,r*.48)}" fill="${eye}"/>`;
+  const smile=`<path d="M40 62 Q50 70 60 62" stroke="${eye}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+  const angry=`<path d="M39 64 Q50 56 61 64" stroke="${eye}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+  const teeth=`<path d="M38 61 L44 67 L50 61 L56 67 L62 61" stroke="${eye}" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+  const mark=[
+    `<circle cx="50" cy="25" r="5" fill="${accent}"/>`,
+    `<path d="M28 36 Q17 13 32 11 Q42 26 39 40Z" fill="${accent}"/><path d="M72 36 Q83 13 68 11 Q58 26 61 40Z" fill="${accent}"/>`,
+    `<path d="M50 31 Q35 14 50 8 Q65 14 50 31Z" fill="${accent}"/>`,
+    `<path d="M50 17 L56 31 L44 31Z" fill="${accent}"/><path d="M30 35 Q18 14 32 12 Q42 26 40 39Z" fill="${dark}"/><path d="M70 35 Q82 14 68 12 Q58 26 60 39Z" fill="${dark}"/>`,
+    `<path d="M25 49 Q8 32 17 18 Q34 31 38 49Z" fill="${accent}" opacity=".82"/><path d="M75 49 Q92 32 83 18 Q66 31 62 49Z" fill="${accent}" opacity=".82"/>`,
+    `<path d="M30 32 L25 12 L42 26 M70 32 L75 12 L58 26" fill="${accent}"/>`,
+    `<path d="M30 29 L36 10 L48 23 L59 8 L70 29Z" fill="${accent}" stroke="#fff" stroke-width="1.5"/>`
+  ][level];
+  const id=level*3+stage;
+  const badge=Array.from({length:stage+1},(_,i)=>`<circle cx="${46+i*5-stage*2.5}" cy="76" r="2.2" fill="${accent}" opacity=".95"/>`).join('');
+  switch(id){
+    case 0: return `<ellipse cx="50" cy="66" rx="34" ry="20" fill="${dark}"/><ellipse cx="50" cy="53" rx="28" ry="25" fill="${main}"/><circle cx="30" cy="68" r="7" fill="${main}" opacity=".7"/><circle cx="70" cy="68" r="7" fill="${main}" opacity=".7"/>${mark}${eyes(47,6)}${smile}${badge}`;
+    case 1: return `<path d="M18 53 Q13 31 35 42 Q50 25 65 42 Q87 31 82 53 Q68 49 61 61 Q50 53 39 61 Q32 49 18 53Z" fill="${dark}"/><ellipse cx="50" cy="55" rx="22" ry="22" fill="${main}"/>${mark}${eyes(49,6)}${angry}${badge}`;
+    case 2: return `<path d="M50 16 L62 39 L86 42 L67 58 L73 82 L50 69 L27 82 L33 58 L14 42 L38 39Z" fill="${dark}"/><circle cx="50" cy="50" r="24" fill="${main}"/>${mark}${eyes(47,6)}${teeth}${badge}`;
+    case 3: return `<path d="M20 75 Q23 38 50 23 Q77 38 80 75 Q66 68 58 80 Q50 69 42 80 Q34 68 20 75Z" fill="${main}" opacity=".88"/>${mark}${eyes(50,7)}<circle cx="50" cy="65" r="6" fill="${dark}"/>${badge}`;
+    case 4: return `<ellipse cx="50" cy="61" rx="30" ry="24" fill="${dark}"/><ellipse cx="50" cy="48" rx="24" ry="23" fill="${main}"/><path d="M29 65 Q16 57 19 46 Q32 51 38 63Z" fill="${accent}" opacity=".75"/><path d="M71 65 Q84 57 81 46 Q68 51 62 63Z" fill="${accent}" opacity=".75"/>${mark}${eyes(46,7)}${smile}${badge}`;
+    case 5: return `<rect x="26" y="38" width="48" height="45" rx="9" fill="${dark}"/><rect x="33" y="26" width="34" height="30" rx="7" fill="${main}"/><rect x="36" y="36" width="28" height="13" rx="3" fill="#102033"/>${mark}${eyes(42,4)}<rect x="43" y="61" width="14" height="4" rx="2" fill="${accent}"/>${badge}`;
+    case 6: return `<path d="M50 13 L61 39 L87 43 L66 57 L72 82 L50 68 L28 82 L34 57 L13 43 L39 39Z" fill="${dark}"/><circle cx="50" cy="50" r="24" fill="${main}"/>${mark}${eyes(47,6)}${smile}${badge}`;
+    case 7: return `<path d="M50 13 Q62 31 74 30 Q66 43 78 57 Q61 57 50 78 Q39 57 22 57 Q34 43 26 30 Q38 31 50 13Z" fill="${dark}"/><circle cx="50" cy="50" r="24" fill="${main}"/>${mark}${eyes(46,7)}${angry}${badge}`;
+    case 8: return `<path d="M24 80 L31 38 L50 18 L69 38 L76 80 Q61 72 50 82 Q39 72 24 80Z" fill="${dark}"/><ellipse cx="50" cy="48" rx="25" ry="23" fill="${main}"/>${mark}${eyes(47,7)}${teeth}${badge}`;
+    case 9: return `<ellipse cx="50" cy="61" rx="31" ry="25" fill="${dark}"/><circle cx="50" cy="43" r="25" fill="${main}"/>${mark}${eyes(42,7)}${teeth}<path d="M33 73 L28 86 M67 73 L72 86" stroke="${dark}" stroke-width="5" stroke-linecap="round"/>${badge}`;
+    case 10: return `<path d="M25 70 Q19 38 36 38 Q40 22 50 20 Q60 22 64 38 Q81 38 75 70 Q62 65 50 72 Q38 65 25 70Z" fill="${dark}"/><ellipse cx="50" cy="49" rx="25" ry="22" fill="${main}"/>${mark}${eyes(47,7)}${angry}${badge}`;
+    case 11: return `<path d="M31 31 Q17 12 30 9 Q42 24 42 38Z" fill="${dark}"/><path d="M69 31 Q83 12 70 9 Q58 24 58 38Z" fill="${dark}"/><ellipse cx="50" cy="60" rx="30" ry="25" fill="${dark}"/><ellipse cx="50" cy="46" rx="25" ry="23" fill="${main}"/>${mark}${eyes(45,7)}${teeth}${badge}`;
+    case 12: return `<path d="M22 62 Q17 44 28 36 Q38 50 43 64Z" fill="${dark}"/><path d="M78 62 Q83 44 72 36 Q62 50 57 64Z" fill="${dark}"/><ellipse cx="50" cy="60" rx="26" ry="23" fill="${dark}"/><ellipse cx="50" cy="47" rx="24" ry="22" fill="${main}"/>${mark}${eyes(45,7)}${smile}${badge}`;
+    case 13: return `<path d="M21 64 Q25 31 50 27 Q75 31 79 64 Q67 85 50 71 Q33 85 21 64Z" fill="${dark}"/><ellipse cx="50" cy="49" rx="26" ry="23" fill="${main}"/>${mark}${eyes(48,6)}${teeth}${badge}`;
+    case 14: return `<ellipse cx="50" cy="61" rx="30" ry="25" fill="${dark}"/><ellipse cx="50" cy="45" rx="25" ry="23" fill="${main}"/><circle cx="28" cy="62" r="8" fill="${accent}"/><circle cx="72" cy="62" r="8" fill="${accent}"/>${mark}${eyes(44,7)}${angry}${badge}`;
+    case 15: return `<path d="M50 10 Q63 24 73 18 Q69 34 80 42 Q63 43 50 36 Q37 43 20 42 Q31 34 27 18 Q37 24 50 10Z" fill="${dark}"/><ellipse cx="50" cy="59" rx="28" ry="24" fill="${dark}"/><circle cx="50" cy="45" r="23" fill="${main}"/>${mark}${eyes(44,6)}${teeth}${badge}`;
+    case 16: return `<path d="M50 8 L61 29 L84 26 L70 44 L83 64 L60 61 L50 82 L40 61 L17 64 L30 44 L16 26 L39 29Z" fill="${dark}"/><circle cx="50" cy="47" r="24" fill="${main}"/>${mark}${eyes(46,7)}${angry}${badge}`;
+    case 17: return `<rect x="24" y="39" width="52" height="45" rx="8" fill="${dark}"/><rect x="31" y="27" width="38" height="29" rx="7" fill="${main}"/><rect x="36" y="37" width="28" height="13" rx="3" fill="#10152a"/>${mark}${eyes(43,4)}<path d="M39 63 H61" stroke="${accent}" stroke-width="4" stroke-linecap="round"/>${badge}`;
+    case 18: return `<path d="M24 58 Q14 45 22 34 Q34 45 37 59Z" fill="${dark}"/><path d="M76 58 Q86 45 78 34 Q66 45 63 59Z" fill="${dark}"/><ellipse cx="50" cy="61" rx="31" ry="25" fill="${dark}"/><circle cx="50" cy="45" r="25" fill="${main}"/>${mark}${eyes(44,7)}${smile}${badge}`;
+    case 19: return `<ellipse cx="50" cy="61" rx="29" ry="25" fill="${dark}"/><ellipse cx="50" cy="45" rx="25" ry="23" fill="${main}"/><circle cx="27" cy="63" r="9" fill="${accent}" opacity=".85"/><circle cx="73" cy="63" r="9" fill="${accent}" opacity=".85"/>${mark}${eyes(44,7)}${teeth}${badge}`;
+    default: return `<path d="M50 7 L61 27 L84 24 L70 43 L87 57 L64 60 L62 83 L50 68 L38 83 L36 60 L13 57 L30 43 L16 24 L39 27Z" fill="${dark}"/><circle cx="50" cy="47" r="26" fill="${main}"/>${mark}${eyes(46,7)}${angry}${badge}`;
   }
 }
+function drawEnemy(level,stateStage=0){
+  const svg=document.getElementById('enemy-svg');
+  const stage=Math.max(0,Math.min(STAGES-1,stateStage||0));
+  svg.innerHTML=buildEnemyCharacter(level,stage);
+  svg.setAttribute('data-enemy-id',`${level}-${stage}`);
+  svg.setAttribute('aria-label',`${LEVEL_NAMES[level]} stage ${stage+1} enemy`);
+}
+
 document.getElementById('answer-input').addEventListener('keydown',e=>{if(e.key==='Enter')submitAnswer();});
-document.addEventListener('pointerdown',()=>{
-  if(document.getElementById('screen-title').classList.contains('active'))startMenuBgm();
-},{passive:true});
-document.addEventListener('keydown',()=>{
-  if(document.getElementById('screen-title').classList.contains('active'))startMenuBgm();
-});
 window.addEventListener('resize',()=>{if(bgAnim)initBg((state.level*STAGES+state.stage)%STAGE_THEMES.length);});
 selectLevel(0);
 selectMode('jp2en');
-selectTimeLimit(15);
+selectTimeLimit(5);
 selectQuizType('input');
 initBg(0);
 </script>
